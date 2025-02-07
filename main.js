@@ -11,8 +11,16 @@ import {
   Mesh,
   MeshNormalMaterial,
   AmbientLight,
+  AxesHelper,
+  PlaneGeometry,
+  ShadowMaterial,
+  Color,
+  Vector3,
   Clock
 } from 'three';
+
+import * as CANNON from 'cannon-es';
+import CannonDebugger from 'cannon-es-debugger';
 
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
@@ -41,6 +49,9 @@ import {
   GLTFLoader
 } from 'three/addons/loaders/GLTFLoader.js';
 
+import {
+  ColladaLoader
+} from 'three/addons/loaders/ColladaLoader.js';
 // Example of hard link to official repo for data, if needed
 // const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
 
@@ -51,7 +62,7 @@ const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
 
-const light = new AmbientLight(0xffffff, 1.0); // soft white light
+const light = new AmbientLight(0xffffff, 2.0); // sxoft white light
 scene.add(light);
 
 const renderer = new WebGLRenderer();
@@ -59,56 +70,162 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
+
 controls.listenToKeyEvents(window); // optional
 
 const geometry = new BoxGeometry(1, 1, 1);
 const material = new MeshNormalMaterial();
-const cube = new Mesh(geometry, material);
 
-scene.add(cube);
+scene.add(new AxesHelper(5))
+scene.background = new Color(0xadd8e6);
 
-function loadData() {
-  new GLTFLoader()
-    .setPath('assets/models/')
-    .load('test.glb', gltfReader);
+
+camera.position.z = 5;
+
+
+////////////////////////////////////LOAD MODEL////////////////////////////////////
+
+let crossyModel = null;
+
+
+
+async function glbLoader() {
+  const loader = new GLTFLoader();
+  loader.load('crossy_road_3d_scene.dae.glb', glbReader);
 }
 
 
-function gltfReader(gltf) {
-  let testModel = null;
+function glbReader(glb) {
+  crossyModel = glb.scene;
 
-  testModel = gltf.scene;
-
-  if (testModel != null) {
-    console.log("Model loaded:  " + testModel);
-    scene.add(gltf.scene);
+  if (crossyModel != null) {
+    console.log("Model loaded:  " + crossyModel);
+    scene.add(crossyModel);
+    findPoulet();
+    createPhysics();
   } else {
     console.log("Load FAILED.  ");
   }
 }
 
-loadData();
+glbLoader();
+
+////////////////////////////////////TROUVER L'ANIMAL////////////////////////////////////
+
+let poulet = [];
+
+function findPoulet() {
+  if (crossyModel) {
+    const sceneGroup = crossyModel.getObjectByName('Sketchfab_model').getObjectByName('Collada_visual_scene_group');
+    ["Cube", "Cube002", "Cube001"].forEach(group => {
+      const pouletGroup = sceneGroup.getObjectByName(group);
+      if (pouletGroup) {
+        pouletGroup.traverse((child) => {
+          if (child.isMesh) {
+            poulet.push(child);
+          }
+        });
+      }
+    });
+
+  } else {
+    console.log("Poulet group not found");
+  }
+};
 
 
-camera.position.z = 3;
+////////////////////////////////////GESTION DE LA PHYSIQUE////////////////////////////////////
+const world = new CANNON.World();
+world.gravity.set(0, 0, -9.81);
 
+let pouletBody = null;
+
+function createPhysics() {
+  if (poulet.length > 0) {
+    const initialPosition = poulet[0].position;
+    pouletBody = new CANNON.Body({
+      mass: 1,
+      shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
+      position: new CANNON.Vec3(initialPosition.x, initialPosition.y, initialPosition.z)
+    });
+    world.addBody(pouletBody);
+    createFloor();
+  }
+}
+
+
+function jump() {
+  if (pouletBody.position.z <= 1.01) {
+    pouletBody.velocity.set(0, 0, 10);
+  }
+
+}
+
+function updatePhysics() {
+  world.fixedStep();
+  if (poulet) {
+    for (let p of poulet) {
+      p.position.copy(pouletBody.position);
+      p.quaternion.copy(pouletBody.quaternion);
+    }
+  }
+}
+window.addEventListener('keydown', (event) => {
+  if (event.key === " ") {
+    jump();
+  }
+});
+const cannonDebugger = new CannonDebugger(scene, world, {
+  color: 0x00ff00
+});
+////////////////////////////////////CREATION DU PLANCHER////////////////////////////////////
+
+function createFloor() {
+  if (poulet) {
+    const minPouletZ = Math.min(...poulet.map(p => p.position.z));
+
+    // Three.js (visible) object
+    const floor = new Mesh(
+      new PlaneGeometry(1000, 1000),
+      new ShadowMaterial({
+        opacity: .1
+      })
+    );
+    floor.receiveShadow = true;
+    floor.position.set(0, 0, minPouletZ - 1);
+    floor.quaternion.setFromAxisAngle(new Vector3(-1, 0, 0), Math.PI * .5);
+    scene.add(floor);
+
+    // Cannon-es (physical) object
+    const floorBody = new CANNON.Body({
+      type: CANNON.Body.STATIC,
+      shape: new CANNON.Plane(),
+    });
+    floorBody.position.copy(floor.position);
+    floorBody.quaternion.copy(floor.quaternion);
+    world.addBody(floorBody);
+  }
+}
 
 const clock = new Clock();
 
-// Main loop
+////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
 
   renderer.setAnimationLoop(animation); // requestAnimationFrame() replacement, compatible with XR 
 
-  const delta = clock.getDelta();
   const elapsed = clock.getElapsedTime();
 
-  // can be used in shaders: uniforms.u_time.value = elapsed;
-
-  cube.rotation.x = elapsed / 2;
-  cube.rotation.y = elapsed / 1;
-
+  controls.update();
+  if (poulet) {
+    updatePhysics();
+  }
+  cannonDebugger.update()
   renderer.render(scene, camera);
+  if (elapsed > 30) {
+    renderer.setAnimationLoop(null);
+    return;
+  }
 };
 
 animation();
