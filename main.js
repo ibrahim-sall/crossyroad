@@ -63,7 +63,6 @@ const aspect = window.innerWidth / window.innerHeight;
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
 
 const light = new AmbientLight(0xffffff, 2.0); // sxoft white light
-scene.add(light);
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -76,8 +75,6 @@ controls.listenToKeyEvents(window); // optional
 const geometry = new BoxGeometry(1, 1, 1);
 const material = new MeshNormalMaterial();
 
-scene.add(new AxesHelper(5))
-scene.background = new Color(0xadd8e6);
 
 
 camera.position.z = 5;
@@ -136,18 +133,32 @@ function findPoulet() {
 
 ////////////////////////////////////GESTION DE LA PHYSIQUE////////////////////////////////////
 const world = new CANNON.World();
-world.gravity.set(0, 0, -9.81);
+world.gravity.set(0, -9.81, 0);
 
 let pouletBody = null;
 
 function createPhysics() {
   if (poulet.length > 0) {
-    const initialPosition = poulet[0].position;
+    const min = new Vector3(Infinity, Infinity, Infinity);
+    const max = new Vector3(-Infinity, -Infinity, -Infinity);
+
+    poulet.forEach(mesh => {
+      mesh.geometry.computeBoundingBox();
+      const boundingBox = mesh.geometry.boundingBox;
+      min.min(boundingBox.min);
+      max.max(boundingBox.max);
+    });
+
+    const size = new Vector3().subVectors(max, min);
+    const center = new Vector3().addVectors(min, max).multiplyScalar(0.5);
+
+    const boxShape = new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z));
     pouletBody = new CANNON.Body({
       mass: 1,
-      shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
-      position: new CANNON.Vec3(initialPosition.x, initialPosition.y, initialPosition.z)
+      position: new CANNON.Vec3(center.x, center.y, center.z),
+      shape: boxShape
     });
+
     world.addBody(pouletBody);
     createFloor();
   }
@@ -155,7 +166,7 @@ function createPhysics() {
 
 
 function jump() {
-  if (pouletBody.position.z <= 1.01) {
+  if (pouletBody.position.y <= 1.01) {
     pouletBody.velocity.set(0, 0, 10);
   }
 
@@ -192,7 +203,7 @@ function createFloor() {
       })
     );
     floor.receiveShadow = true;
-    floor.position.set(0, 0, minPouletZ - 1);
+    floor.position.set(0, 0, minPouletZ);
     floor.quaternion.setFromAxisAngle(new Vector3(-1, 0, 0), Math.PI * .5);
     scene.add(floor);
 
@@ -208,6 +219,9 @@ function createFloor() {
 }
 
 const clock = new Clock();
+scene.add(light);
+scene.add(new AxesHelper(5))
+scene.background = new Color(0xadd8e6);
 
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
