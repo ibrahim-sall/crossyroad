@@ -16,12 +16,13 @@ import {
   ShadowMaterial,
   Color,
   Vector3,
-  Clock
+  Clock,
+  MeshStandardMaterial,
 } from 'three';
 
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
-
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -44,10 +45,6 @@ import CannonDebugger from 'cannon-es-debugger';
 import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
-
-import {
-  GLTFLoader
-} from 'three/addons/loaders/GLTFLoader.js';
 
 import {
   ColladaLoader
@@ -73,7 +70,30 @@ const controls = new OrbitControls(camera, renderer.domElement);
 
 controls.listenToKeyEvents(window); // optional
 
+function saveCameraPosition() {
+  const cameraPosition = {
+    x: camera.position.x,
+    y: camera.position.y,
+    z: camera.position.z,
+    rotation: {
+      x: camera.rotation.x,
+      y: camera.rotation.y,
+      z: camera.rotation.z
+    }
+  };
+  localStorage.setItem('cameraPosition', JSON.stringify(cameraPosition));
+}
 
+function loadCameraPosition() {
+  const cameraPosition = JSON.parse(localStorage.getItem('cameraPosition'));
+  if (cameraPosition) {
+    camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    camera.rotation.set(cameraPosition.rotation.x, cameraPosition.rotation.y, cameraPosition.rotation.z);
+  }
+}
+
+window.addEventListener('beforeunload', saveCameraPosition);
+window.addEventListener('load', loadCameraPosition);
 
 camera.position.z = 5;
 
@@ -97,7 +117,6 @@ function daeReader(dae) {
 
   if (crossyModel != null) {
     console.log("Model loaded:  " + crossyModel);
-    crossyModel.rotation.x = -Math.PI / 2;
     scene.add(crossyModel);
     findPoulet();
     createPhysics();
@@ -110,15 +129,27 @@ daeLoader();
 
 ////////////////////////////////////TROUVER L'ANIMAL////////////////////////////////////
 
-let poulet = [];
+let poulet = null;
 
 function findPoulet() {
   if (crossyModel) {
+    const geometries = [];
     crossyModel.traverse((child) => {
       if (child.isMesh && (child.name === "Cube" || child.name === "Cube.001" || child.name === "Cube.002")) {
-        poulet.push(child);
+        geometries.push(child.geometry.clone().applyMatrix4(child.matrix));
+        child.visible = false;
       }
     });
+
+    if (geometries.length > 0) {
+      const combinedGeometry = BufferGeometryUtils.mergeGeometries(geometries);
+      const combinedMesh = new Mesh(combinedGeometry); // Use the first material
+      poulet = combinedMesh;
+      scene.add(poulet);
+      console.log("Poulet group found" + poulet);
+    } else {
+      console.log("Poulet group not found");
+    }
   } else {
     console.log("Poulet group not found");
   }
@@ -127,67 +158,49 @@ function findPoulet() {
 
 ////////////////////////////////////GESTION DE LA PHYSIQUE////////////////////////////////////
 const world = new CANNON.World();
-world.gravity.set(0, 0, -9.81);
+world.gravity.set(0, -10, 0);
 
 let pouletBody = null;
-
 function createPhysics() {
-  if (poulet.length > 0) {
-    const min = new Vector3(Infinity, Infinity, Infinity);
-    const max = new Vector3(-Infinity, -Infinity, -Infinity);
+  if (poulet) {
+    poulet.geometry.computeBoundingBox();
+    const boundingBox = poulet.geometry.boundingBox;
 
-    poulet.forEach(mesh => {
-      mesh.geometry.computeBoundingBox();
-      const boundingBox = mesh.geometry.boundingBox;
-      min.min(boundingBox.min);
-      max.max(boundingBox.max);
-    });
-
-    const size = new Vector3().subVectors(max, min);
-    const center = new Vector3().addVectors(min, max).multiplyScalar(0.5);
+    const size = new Vector3().subVectors(boundingBox.max, boundingBox.min);
+    const center = new Vector3().addVectors(boundingBox.min, boundingBox.max).multiplyScalar(0.5);
 
     const boxShape = new CANNON.Box(new CANNON.Vec3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
     pouletBody = new CANNON.Body({
       mass: 1,
-      position: new CANNON.Vec3(center.x, center.y, center.z),
+      position: new CANNON.Vec3(poulet.position.x, poulet.position.y, poulet.position.z),
       shape: boxShape
     });
+    pouletBody.quaternion.copy(poulet.quaternion);
 
     world.addBody(pouletBody);
     createFloor();
   }
 }
 
-
-function jump() {
-  if (pouletBody.position.y <= 1.01) {
-    pouletBody.velocity.set(0, 0, 10);
-  }
-
-}
-
 function updatePhysics() {
   world.fixedStep();
   if (poulet) {
-    for (let p of poulet) {
-      p.position.copy(pouletBody.position);
-      p.quaternion.copy(pouletBody.quaternion);
-    }
+    poulet.position.copy(pouletBody.position);
+    poulet.quaternion.copy(pouletBody.quaternion);
   }
 }
 window.addEventListener('keydown', (event) => {
   if (event.key === " ") {
-    jump();
+    pouletBody.applyImpulse(new CANNON.Vec3(0, 5, 0), pouletBody.position);
   }
 });
 const cannonDebugger = new CannonDebugger(scene, world, {
   color: 0x00ff00
 });
 ////////////////////////////////////CREATION DU PLANCHER////////////////////////////////////
-
 function createFloor() {
   if (poulet) {
-    const minPouletY = Math.min(...poulet.map(p => p.position.z));
+    const minPouletY = poulet.position.y;
 
     // Three.js (visible) object
     const floor = new Mesh(
@@ -197,7 +210,7 @@ function createFloor() {
       })
     );
     floor.receiveShadow = true;
-    floor.position.set(0, minPouletY - 10, 0);
+    floor.position.set(0, minPouletY - 0.5, 0);
     floor.quaternion.setFromAxisAngle(new Vector3(-1, 0, 0), Math.PI * .5);
     scene.add(floor);
 
