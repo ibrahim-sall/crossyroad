@@ -52,6 +52,7 @@ import {
 import {
   ColladaLoader
 } from 'three/addons/loaders/ColladaLoader.js';
+import { min } from 'three/src/nodes/TSL.js';
 // Example of hard link to official repo for data, if needed
 // const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
 
@@ -72,9 +73,6 @@ const controls = new OrbitControls(camera, renderer.domElement);
 
 controls.listenToKeyEvents(window); // optional
 
-const geometry = new BoxGeometry(1, 1, 1);
-const material = new MeshNormalMaterial();
-
 
 
 camera.position.z = 5;
@@ -86,17 +84,20 @@ let crossyModel = null;
 
 
 
-async function glbLoader() {
-  const loader = new GLTFLoader();
-  loader.load('crossy_road_3d_scene.dae.glb', glbReader);
+async function daeLoader() {
+  const loader = new ColladaLoader();
+  loader.load('crossy.dae', (dae) => {
+    daeReader(dae);
+  });
 }
 
 
-function glbReader(glb) {
-  crossyModel = glb.scene;
+function daeReader(dae) {
+  crossyModel = dae.scene;
 
   if (crossyModel != null) {
     console.log("Model loaded:  " + crossyModel);
+    crossyModel.rotation.x = -Math.PI / 2;
     scene.add(crossyModel);
     findPoulet();
     createPhysics();
@@ -105,7 +106,7 @@ function glbReader(glb) {
   }
 }
 
-glbLoader();
+daeLoader();
 
 ////////////////////////////////////TROUVER L'ANIMAL////////////////////////////////////
 
@@ -113,27 +114,20 @@ let poulet = [];
 
 function findPoulet() {
   if (crossyModel) {
-    const sceneGroup = crossyModel.getObjectByName('Sketchfab_model').getObjectByName('Collada_visual_scene_group');
-    ["Cube", "Cube002", "Cube001"].forEach(group => {
-      const pouletGroup = sceneGroup.getObjectByName(group);
-      if (pouletGroup) {
-        pouletGroup.traverse((child) => {
-          if (child.isMesh) {
-            poulet.push(child);
-          }
-        });
+    crossyModel.traverse((child) => {
+      if (child.isMesh && (child.name === "Cube" || child.name === "Cube.001" || child.name === "Cube.002")) {
+        poulet.push(child);
       }
     });
-
   } else {
     console.log("Poulet group not found");
   }
-};
+}
 
 
 ////////////////////////////////////GESTION DE LA PHYSIQUE////////////////////////////////////
 const world = new CANNON.World();
-world.gravity.set(0, -9.81, 0);
+world.gravity.set(0, 0, -9.81);
 
 let pouletBody = null;
 
@@ -152,7 +146,7 @@ function createPhysics() {
     const size = new Vector3().subVectors(max, min);
     const center = new Vector3().addVectors(min, max).multiplyScalar(0.5);
 
-    const boxShape = new CANNON.Box(new CANNON.Vec3(size.x, size.y, size.z));
+    const boxShape = new CANNON.Box(new CANNON.Vec3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
     pouletBody = new CANNON.Body({
       mass: 1,
       position: new CANNON.Vec3(center.x, center.y, center.z),
@@ -193,7 +187,7 @@ const cannonDebugger = new CannonDebugger(scene, world, {
 
 function createFloor() {
   if (poulet) {
-    const minPouletZ = Math.min(...poulet.map(p => p.position.z));
+    const minPouletY = Math.min(...poulet.map(p => p.position.z));
 
     // Three.js (visible) object
     const floor = new Mesh(
@@ -203,7 +197,7 @@ function createFloor() {
       })
     );
     floor.receiveShadow = true;
-    floor.position.set(0, 0, minPouletZ);
+    floor.position.set(0, minPouletY - 10, 0);
     floor.quaternion.setFromAxisAngle(new Vector3(-1, 0, 0), Math.PI * .5);
     scene.add(floor);
 
