@@ -84,29 +84,32 @@ let crossyModel = null;
 
 
 
-async function daeLoader() {
-  const loader = new ColladaLoader();
-  loader.load('crossy.dae', (dae) => {
-    daeReader(dae);
+async function gltfLoader() {
+  const loader = new GLTFLoader();
+  loader.load('scene.gltf', (gltf) => {
+    gltfReader(gltf);
   });
 }
 
-
-function daeReader(dae) {
-  crossyModel = dae.scene;
+function gltfReader(gltf) {
+  crossyModel = gltf.scene;
 
   if (crossyModel != null) {
     console.log("Model loaded:  " + crossyModel);
     crossyModel.rotation.x = -Math.PI / 2;
     scene.add(crossyModel);
+    if (crossyModel.camera) {
+      camera.position.copy(crossyModel.camera.position);
+      camera.rotation.copy(crossyModel.camera.rotation);
+    }
     findPoulet();
     createPhysics();
   } else {
-    console.log("Load FAILED.  ");
+    console.log("Load FAILED.");
   }
 }
 
-daeLoader();
+gltfLoader();
 
 ////////////////////////////////////TROUVER L'ANIMAL////////////////////////////////////
 
@@ -139,8 +142,10 @@ function createPhysics() {
     poulet.forEach(mesh => {
       mesh.geometry.computeBoundingBox();
       const boundingBox = mesh.geometry.boundingBox;
-      min.min(boundingBox.min);
-      max.max(boundingBox.max);
+      if (boundingBox) {
+        min.min(boundingBox.min);
+        max.max(boundingBox.max);
+      }
     });
 
     const size = new Vector3().subVectors(max, min);
