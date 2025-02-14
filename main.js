@@ -7,22 +7,24 @@ import {
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
-  BoxGeometry,
   Mesh,
-  MeshNormalMaterial,
+  Box3,
   AmbientLight,
   AxesHelper,
+  TextureLoader,
   PlaneGeometry,
   ShadowMaterial,
+  LoadingManager,
   Color,
+  SRGBColorSpace,
   Vector3,
   Clock,
-  MeshStandardMaterial,
+  DefaultLoadingManager,
 } from 'three';
 
-import * as CANNON from 'cannon-es';
-import CannonDebugger from 'cannon-es-debugger';
+
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -46,10 +48,6 @@ import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
 
-import {
-  ColladaLoader
-} from 'three/addons/loaders/ColladaLoader.js';
-import { min } from 'three/src/nodes/TSL.js';
 // Example of hard link to official repo for data, if needed
 // const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
 
@@ -95,135 +93,42 @@ function loadCameraPosition() {
 window.addEventListener('beforeunload', saveCameraPosition);
 window.addEventListener('load', loadCameraPosition);
 
-camera.position.z = 5;
 
 
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
-let crossyModel = null;
-
-
-
-async function daeLoader() {
-  const loader = new ColladaLoader();
-  loader.load('crossy.dae', (dae) => {
-    daeReader(dae);
-  });
-}
-
-
-function daeReader(dae) {
-  crossyModel = dae.scene;
-
-  if (crossyModel != null) {
-    console.log("Model loaded:  " + crossyModel);
-    scene.add(crossyModel);
-    findPoulet();
-    createPhysics();
-  } else {
-    console.log("Load FAILED.  ");
-  }
-}
-
-daeLoader();
-
-////////////////////////////////////TROUVER L'ANIMAL////////////////////////////////////
-
 let poulet = null;
 
-function findPoulet() {
-  if (crossyModel) {
-    const geometries = [];
-    crossyModel.traverse((child) => {
-      if (child.isMesh && (child.name === "Cube" || child.name === "Cube.001" || child.name === "Cube.002")) {
-        geometries.push(child.geometry.clone().applyMatrix4(child.matrix));
-        child.visible = false;
-      }
-    });
+async function loadModel(modelPath, texturePath) {
+  const loader = new OBJLoader();
+  const model = await loader.loadAsync(modelPath);
 
-    if (geometries.length > 0) {
-      const combinedGeometry = BufferGeometryUtils.mergeGeometries(geometries);
-      const combinedMesh = new Mesh(combinedGeometry); // Use the first material
-      poulet = combinedMesh;
-      scene.add(poulet);
-      console.log("Poulet group found" + poulet);
-    } else {
-      console.log("Poulet group not found");
+  const textureLoader = new TextureLoader();
+  const texture = await textureLoader.loadAsync(texturePath);
+  texture.colorSpace = SRGBColorSpace;
+
+  model.traverse((child) => {
+    if (child.isMesh) {
+      child.material.map = texture;
     }
-  } else {
-    console.log("Poulet group not found");
-  }
+  });
+
+  return model;
 }
 
+async function addModel(modelPath, texturePath) {
+  const model = await loadModel(modelPath, texturePath);
 
-////////////////////////////////////GESTION DE LA PHYSIQUE////////////////////////////////////
-const world = new CANNON.World();
-world.gravity.set(0, -10, 0);
+  model.position.set(0, 0, 0);
+  model.scale.set(1, 1, 1);
+  scene.add(model);
 
-let pouletBody = null;
-function createPhysics() {
-  if (poulet) {
-    poulet.geometry.computeBoundingBox();
-    const boundingBox = poulet.geometry.boundingBox;
-
-    const size = new Vector3().subVectors(boundingBox.max, boundingBox.min);
-    const center = new Vector3().addVectors(boundingBox.min, boundingBox.max).multiplyScalar(0.5);
-
-    const boxShape = new CANNON.Box(new CANNON.Vec3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
-    pouletBody = new CANNON.Body({
-      mass: 1,
-      position: new CANNON.Vec3(poulet.position.x, poulet.position.y, poulet.position.z),
-      shape: boxShape
-    });
-    pouletBody.quaternion.copy(poulet.quaternion);
-
-    world.addBody(pouletBody);
-    createFloor();
-  }
+  poulet = model;
 }
 
-function updatePhysics() {
-  world.fixedStep();
-  if (poulet) {
-    poulet.position.copy(pouletBody.position);
-    poulet.quaternion.copy(pouletBody.quaternion);
-  }
-}
-window.addEventListener('keydown', (event) => {
-  if (event.key === " ") {
-    pouletBody.applyImpulse(new CANNON.Vec3(0, 5, 0), pouletBody.position);
-  }
-});
-const cannonDebugger = new CannonDebugger(scene, world, {
-  color: 0x00ff00
-});
-////////////////////////////////////CREATION DU PLANCHER////////////////////////////////////
-function createFloor() {
-  if (poulet) {
-    const minPouletY = poulet.position.y;
+addModel('assets/models/characters/chicken/0.obj', 'assets/models/characters/chicken/0.png');
 
-    // Three.js (visible) object
-    const floor = new Mesh(
-      new PlaneGeometry(1000, 1000),
-      new ShadowMaterial({
-        opacity: .1
-      })
-    );
-    floor.receiveShadow = true;
-    floor.position.set(0, minPouletY - 0.5, 0);
-    floor.quaternion.setFromAxisAngle(new Vector3(-1, 0, 0), Math.PI * .5);
-    scene.add(floor);
 
-    // Cannon-es (physical) object
-    const floorBody = new CANNON.Body({
-      type: CANNON.Body.STATIC,
-      shape: new CANNON.Plane(),
-    });
-    floorBody.position.copy(floor.position);
-    floorBody.quaternion.copy(floor.quaternion);
-    world.addBody(floorBody);
-  }
-}
 
 const clock = new Clock();
 scene.add(light);
@@ -233,16 +138,18 @@ scene.background = new Color(0xadd8e6);
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
 
-  renderer.setAnimationLoop(animation); // requestAnimationFrame() replacement, compatible with XR 
+  renderer.setAnimationLoop(animation);
 
   const elapsed = clock.getElapsedTime();
 
   controls.update();
-  if (poulet) {
-    updatePhysics();
-  }
-  cannonDebugger.update()
   renderer.render(scene, camera);
+
+  if (poulet) {
+    poulet.position.y = Math.sin(elapsed) * 0.5;
+    poulet.rotation.y += 0.01;
+  }
+
   if (elapsed > 30) {
     renderer.setAnimationLoop(null);
     return;
