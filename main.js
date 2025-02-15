@@ -25,6 +25,7 @@ import {
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import { movePoulet } from './move.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -90,10 +91,22 @@ function loadCameraPosition() {
   }
 }
 
+function resetCameraPosition() {
+  camera.position.set(0, 0, 5);
+  camera.rotation.set(0, 0, 0);
+  saveCameraPosition();
+}
+
 window.addEventListener('beforeunload', saveCameraPosition);
 window.addEventListener('load', loadCameraPosition);
 
-
+const resetButton = document.createElement('button');
+resetButton.innerText = 'Reset Camera';
+resetButton.style.position = 'absolute';
+resetButton.style.top = '10px';
+resetButton.style.right = '10px';
+resetButton.addEventListener('click', resetCameraPosition);
+document.body.appendChild(resetButton);
 
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
@@ -145,11 +158,6 @@ const animation = () => {
   controls.update();
   renderer.render(scene, camera);
 
-  if (poulet) {
-    poulet.position.y = Math.sin(elapsed) * 0.5;
-    poulet.rotation.y += 0.01;
-  }
-
   if (elapsed > 30) {
     renderer.setAnimationLoop(null);
     return;
@@ -158,7 +166,31 @@ const animation = () => {
 
 animation();
 
+////////////////////////////////////EVENT LISTENER////////////////////////////////////
+
 window.addEventListener('resize', onWindowResize, false);
+
+window.addEventListener('keydown', (event) => {
+  if (poulet) {
+    switch (event.key) {
+      case 'ArrowUp':
+        movePoulet(poulet, 'up');
+        break;
+      case 'ArrowDown':
+        movePoulet(poulet, 'down');
+        break;
+      case 'ArrowLeft':
+        movePoulet(poulet, 'left');
+        break;
+      case 'ArrowRight':
+        movePoulet(poulet, 'right');
+        break;
+      case ' ':
+        movePoulet(poulet, 'up');
+        break;
+    }
+  }
+});
 
 function onWindowResize() {
 
