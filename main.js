@@ -25,7 +25,7 @@ import {
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { movePoulet } from './move.js';
+import { movePoulet, moveCamera } from './move.js';
 import { loadModel } from './loader.js';
 import { getNext } from './environement.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
@@ -47,6 +47,9 @@ import { getNext } from './environement.js';
 // See vite.config.js
 // 
 // Consider using alternatives like Oimo or cannon-es
+
+import { updateScore } from './score.js';
+
 import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
@@ -69,8 +72,7 @@ document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.listenToKeyEvents(window); // optional
-
+////////////////////////////////////CAMERA////////////////////////////////////
 function saveCameraPosition() {
   const cameraPosition = {
     x: camera.position.x,
@@ -94,8 +96,8 @@ function loadCameraPosition() {
 }
 
 function resetCameraPosition() {
-  camera.position.set(0, 0, 5);
-  camera.rotation.set(0, 0, 0);
+  camera.position.set(-2.3, 4.1, -3.8);
+  camera.rotation.set(-2.3, -0.4, -2.7);
   saveCameraPosition();
 }
 
@@ -139,12 +141,12 @@ scene.background = new Color(0xadd8e6);
 async function addEnvironmentBlocks() {
   for (let i = 0; i < 10; i++) {
     const block = await getNext(0, -0.4, i);
-    console.log(block);
     scene.add(block);
   }
 }
 addEnvironmentBlocks();
 
+////////////////////////////////////SCORE////////////////////////////////////
 
 
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
@@ -152,11 +154,13 @@ const animation = () => {
 
 
   renderer.setAnimationLoop(animation);
+  updateScore();
 
   const elapsed = clock.getElapsedTime();
+  moveCamera(poulet, camera);
 
   controls.update();
-  renderer.render(scene, camera);
+  renderer.render(scene, camera), poulet;
 
   if (elapsed > 30) {
     renderer.setAnimationLoop(null);
@@ -164,7 +168,9 @@ const animation = () => {
   }
 };
 
-animation();
+poulet.then(() => {
+  animation();
+});
 
 ////////////////////////////////////EVENT LISTENER////////////////////////////////////
 
@@ -186,7 +192,7 @@ window.addEventListener('keydown', (event) => {
         movePoulet(poulet, 'right');
         break;
       case ' ':
-        movePoulet(poulet, 'up');
+        movePoulet(poulet, 'space');
         break;
     }
   }

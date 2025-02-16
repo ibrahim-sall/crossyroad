@@ -11,13 +11,9 @@ async function loadEnv(modelPath, texturePath) {
 }
 
 
-
-let grass = 'grass';
-let river = 'river';
-
 async function initializeEnvs() {
-    envs[grass] = await loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png');
-    envs[river] = await loadEnv('assets/models/environment/river/0.obj', 'assets/models/environment/river/0.png');
+    envs['grass'] = await loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png');
+    envs['river'] = await loadEnv('assets/models/environment/river/0.obj', 'assets/models/environment/river/0.png');
 }
 
 initializeEnvs();
