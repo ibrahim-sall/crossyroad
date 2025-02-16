@@ -24,8 +24,10 @@ import {
 
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+
 import { movePoulet } from './move.js';
+import { loadModel } from './loader.js';
+import { getNext } from './environement.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -112,24 +114,7 @@ document.body.appendChild(resetButton);
 
 let poulet = null;
 
-async function loadModel(modelPath, texturePath) {
-  const loader = new OBJLoader();
-  const model = await loader.loadAsync(modelPath);
-
-  const textureLoader = new TextureLoader();
-  const texture = await textureLoader.loadAsync(texturePath);
-  texture.colorSpace = SRGBColorSpace;
-
-  model.traverse((child) => {
-    if (child.isMesh) {
-      child.material.map = texture;
-    }
-  });
-
-  return model;
-}
-
-async function addModel(modelPath, texturePath) {
+export async function addModel(modelPath, texturePath) {
   const model = await loadModel(modelPath, texturePath);
 
   model.position.set(0, 0, 0);
@@ -139,7 +124,9 @@ async function addModel(modelPath, texturePath) {
   poulet = model;
 }
 
-addModel('assets/models/characters/chicken/0.obj', 'assets/models/characters/chicken/0.png');
+
+
+poulet = addModel('assets/models/characters/chicken/0.obj', 'assets/models/characters/chicken/0.png');
 
 
 
@@ -148,8 +135,21 @@ scene.add(light);
 scene.add(new AxesHelper(5))
 scene.background = new Color(0xadd8e6);
 
+////////////////////////////////////ENVIRONEMENT////////////////////////////////////
+async function addEnvironmentBlocks() {
+  for (let i = 0; i < 10; i++) {
+    const block = await getNext(0, -0.4, i);
+    console.log(block);
+    scene.add(block);
+  }
+}
+addEnvironmentBlocks();
+
+
+
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
+
 
   renderer.setAnimationLoop(animation);
 
