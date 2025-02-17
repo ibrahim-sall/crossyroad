@@ -1,3 +1,5 @@
+import { PositionOccupied } from "./environement";
+
 export function movePoulet(poulet, direction) {
     const distance = 1;
     const duration = 500;
