@@ -28,6 +28,8 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 import { movePoulet, moveCamera } from './move.js';
 import { loadModel } from './loader.js';
 import { getNext } from './environement.js';
+import { initializeScore, updateScore } from './score.js';
+import { initAudio, playSound } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -48,7 +50,7 @@ import { getNext } from './environement.js';
 // 
 // Consider using alternatives like Oimo or cannon-es
 
-import { updateScore } from './score.js';
+
 
 import {
   OrbitControls
@@ -112,6 +114,34 @@ resetButton.style.right = '10px';
 resetButton.addEventListener('click', resetCameraPosition);
 document.body.appendChild(resetButton);
 
+////////////////////////////////////START POPUP////////////////////////////////////
+// const startPopup = document.createElement('div');
+// startPopup.style.position = 'fixed';
+// startPopup.style.top = '0';
+// startPopup.style.left = '0';
+// startPopup.style.width = '100%';
+// startPopup.style.height = '100%';
+// startPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+// startPopup.style.display = 'flex';
+// startPopup.style.justifyContent = 'center';
+// startPopup.style.alignItems = 'center';
+// startPopup.style.zIndex = '1000';
+
+// const startButton = document.createElement('button');
+// startButton.innerText = 'Start';
+// startButton.style.padding = '20px';
+// startButton.style.fontSize = '20px';
+// startButton.style.cursor = 'pointer';
+
+// startPopup.appendChild(startButton);
+// document.body.appendChild(startPopup);
+
+// startButton.addEventListener('click', () => {
+//   startPopup.style.display = 'none';
+//   initAudio(camera); // Démarrer l'audio après l'interaction utilisateur
+//   animation(); // Démarrer l'animation après l'interaction utilisateur
+// });
+
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
 let poulet = null;
@@ -146,7 +176,11 @@ async function addEnvironmentBlocks() {
 }
 addEnvironmentBlocks();
 
+////////////////////////////////////AUDIO////////////////////////////////////
+initAudio(camera);
+
 ////////////////////////////////////SCORE////////////////////////////////////
+initializeScore();
 
 
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
@@ -154,7 +188,7 @@ const animation = () => {
 
 
   renderer.setAnimationLoop(animation);
-  updateScore();
+  updateScore(poulet);
 
   const elapsed = clock.getElapsedTime();
   //moveCamera(poulet, camera);
@@ -177,6 +211,7 @@ poulet.then(() => {
 window.addEventListener('resize', onWindowResize, false);
 
 window.addEventListener('keydown', (event) => {
+  playSound();
   if (poulet) {
     switch (event.key) {
       case 'ArrowUp':
@@ -192,7 +227,7 @@ window.addEventListener('keydown', (event) => {
         movePoulet(poulet, 'right');
         break;
       case ' ':
-        movePoulet(poulet, 'space');
+        movePoulet(poulet, 'jump');
         break;
     }
   }
