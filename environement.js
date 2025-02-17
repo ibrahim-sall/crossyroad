@@ -17,13 +17,13 @@ const treePositions = [];
 export function PositionOccupied(x, z, direction) {
     switch (direction) {
         case 'up':
-            return treePositions.some(pos => pos.x === x && pos.z === z - 1);
-        case 'down':
             return treePositions.some(pos => pos.x === x && pos.z === z + 1);
+        case 'down':
+            return treePositions.some(pos => pos.x === x && pos.z === z - 1);
         case 'right':
-            return treePositions.some(pos => pos.x === x + 1 && pos.z === z);
-        case 'left':
             return treePositions.some(pos => pos.x === x - 1 && pos.z === z);
+        case 'left':
+            return treePositions.some(pos => pos.x === x + 1 && pos.z === z);
         default:
             return treePositions.some(pos => pos.x === x && pos.z === z);
     }
@@ -62,7 +62,7 @@ export async function getNext(x, y, z) {
         const tree = more[treeKey].clone();
         const randomX = Math.floor(Math.random() * 16 - 8);
         tree.position.set(randomX, 0.4, 0);
-        treePositions.push({ x: randomX, z: 0 });
+        treePositions.push({ x: randomX, z: Math.floor(z) });
         randomEnv.add(tree);
     }
     randomEnv.position.set(x, y, Math.floor(z));
