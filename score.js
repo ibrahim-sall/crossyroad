@@ -18,6 +18,7 @@ export function updateScore(poulet) {
         if (currentScore >= previousScore) {
             scoreElement.innerText = `Score: ${currentScore}`;
         }
+        return currentScore
     }
 }
 export function initializeScore() {

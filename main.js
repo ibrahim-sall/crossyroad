@@ -115,36 +115,37 @@ resetButton.addEventListener('click', resetCameraPosition);
 document.body.appendChild(resetButton);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
-  const startPopup = document.createElement('div');
-  startPopup.style.position = 'fixed';
-  startPopup.style.top = '0';
-  startPopup.style.left = '0';
-  startPopup.style.width = '100%';
-  startPopup.style.height = '100%';
-  startPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  startPopup.style.display = 'flex';
-  startPopup.style.justifyContent = 'center';
-  startPopup.style.alignItems = 'center';
-  startPopup.style.zIndex = '1000';
+const startPopup = document.createElement('div');
+startPopup.style.position = 'fixed';
+startPopup.style.top = '0';
+startPopup.style.left = '0';
+startPopup.style.width = '100%';
+startPopup.style.height = '100%';
+startPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+startPopup.style.display = 'flex';
+startPopup.style.justifyContent = 'center';
+startPopup.style.alignItems = 'center';
+startPopup.style.zIndex = '1000';
 
-  const startButton = document.createElement('button');
-  startButton.innerText = 'Start';
-  startButton.style.padding = '20px';
-  startButton.style.fontSize = '20px';
-  startButton.style.cursor = 'pointer';
+const startButton = document.createElement('button');
+startButton.innerText = 'Start';
+startButton.style.padding = '20px';
+startButton.style.fontSize = '20px';
+startButton.style.cursor = 'pointer';
 
-  startPopup.appendChild(startButton);
-  document.body.appendChild(startPopup);
+startPopup.appendChild(startButton);
+document.body.appendChild(startPopup);
 
-  startButton.addEventListener('click', () => {
-    startPopup.style.display = 'none';
-    initAudio(camera); // Démarrer l'audio après l'interaction utilisateur
-    animation(); // Démarrer l'animation après l'interaction utilisateur
-  });
+startButton.addEventListener('click', () => {
+  startPopup.style.display = 'none';
+  initAudio(camera); // Démarrer l'audio après l'interaction utilisateur
+  animation(); // Démarrer l'animation après l'interaction utilisateur
+});
 
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
 let poulet = null;
+let pouletBox = null;
 
 export async function addModel(modelPath, texturePath) {
   const model = await loadModel(modelPath, texturePath);
@@ -154,6 +155,7 @@ export async function addModel(modelPath, texturePath) {
   scene.add(model);
 
   poulet = model;
+  pouletBox = new Box3().setFromObject(poulet);
 }
 
 
@@ -168,27 +170,35 @@ scene.add(new AxesHelper(5))
 scene.background = new Color(0xadd8e6);
 
 ////////////////////////////////////ENVIRONEMENT////////////////////////////////////
-async function addEnvironmentBlocks() {
-  for (let i = 0; i < 10; i++) {
-    const block = await getNext(0, -0.4, i);
+async function addEnvironmentBlock(i) {
+  const block = await getNext(0, -0.4, i);
+  if (block != null) {
     scene.add(block);
   }
 }
-addEnvironmentBlocks();
+
+//initialize
+function initEnvironmentBlocks() {
+  for (let i = 0; i < 20; i++) {
+    addEnvironmentBlock(i);
+  }
+}
+initEnvironmentBlocks();
 
 ////////////////////////////////////AUDIO////////////////////////////////////
 initAudio(camera);
 
 ////////////////////////////////////SCORE////////////////////////////////////
 initializeScore();
-
+let currentScore = 0;
 
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
 
 
   renderer.setAnimationLoop(animation);
-  updateScore(poulet);
+
+  currentScore = updateScore(poulet);
 
   const elapsed = clock.getElapsedTime();
   //moveCamera(poulet, camera);
@@ -215,6 +225,7 @@ window.addEventListener('keydown', (event) => {
   if (poulet) {
     switch (event.key) {
       case 'ArrowUp':
+        addEnvironmentBlock(currentScore + 20);
         movePoulet(poulet, 'up');
         break;
       case 'ArrowDown':
