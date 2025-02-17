@@ -157,7 +157,7 @@ const animation = () => {
   updateScore();
 
   const elapsed = clock.getElapsedTime();
-  moveCamera(poulet, camera);
+  //moveCamera(poulet, camera);
 
   controls.update();
   renderer.render(scene, camera), poulet;
