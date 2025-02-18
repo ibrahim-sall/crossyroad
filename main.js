@@ -27,9 +27,9 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 import { movePoulet, loose } from './moove.js';
 import { loadModel } from './loader.js';
-import { getNext, woods } from './environement.js';
+import { getNext, woods, cars, isHitByCar } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
-import { initAudio, playSound, playSoundRiver } from './sound.js';
+import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -208,7 +208,9 @@ const animation = () => {
 
   controls.update();
   renderer.render(scene, camera);
-
+  if (elapsed % 5 < 0.016) {
+    playHorn();
+  }
 
   if (elapsed > 30) {
     renderer.setAnimationLoop(null);
@@ -270,20 +272,49 @@ function moveWoodLogs() {
   });
 }
 
+function moveCars() {
+  cars.forEach(car => {
+    car.position.x += 0.05;
+    if (car.position.x > 10) {
+      car.position.x = -10;
+    }
+    if (!scene.children.includes(car)) {
+      scene.add(car);
+    }
+    const carBox = new Box3().setFromObject(car);
+    car.userData.box = carBox;
+  });
+}
+
+
 
 
 function updateEnvironment() {
   moveWoodLogs();
+  moveCars();
 }
 
 ////////////////////////////////////LOOOSE////////////////////////////////////
 function isLoose() {
+  if (isHitByCar(poulet.position.x, poulet.position.z)) {
+    loose.car = true;
+    poulet.rotation.z = -Math.PI / 2;
+    poulet.rotation.x = Math.PI / 2;
+    poulet.position.x += 1.5;
+  }
   if (loose.river) {
     playSoundRiver();
     renderer.setAnimationLoop(null);
-    popUpLoose();
+    setTimeout(popUpLoose, 1000);
+  }
+  if (loose.car) {
+    playSoundCar();
+    renderer.setAnimationLoop(null);
+    setTimeout(popUpLoose, 1000);
   }
 }
+
+
 
 function popUpLoose() {
   const loosePopup = document.createElement('div');

@@ -45,3 +45,29 @@ export function playSoundRiver() {
         sound.play();
     });
 }
+const soundCar = ['carhit.mp3', 'carsquish3.wav']
+
+export function playSoundCar() {
+    if (sound.isPlaying) {
+        sound.stop();
+    }
+    const randomIndex = Math.floor(Math.random() * soundCar.length);
+    const randomSound = soundCar[randomIndex];
+    audioLoader.load('assets/audio/' + randomSound, function (buffer) {
+        sound.setBuffer(buffer);
+        sound.setVolume(0.7);
+        sound.play();
+    });
+}
+
+
+export function playHorn() {
+    if (sound.isPlaying) {
+        sound.stop();
+    }
+    audioLoader.load('assets/audio/car-horn.wav', function (buffer) {
+        sound.setBuffer(buffer);
+        sound.setVolume(0.7);
+        sound.play();
+    });
+}

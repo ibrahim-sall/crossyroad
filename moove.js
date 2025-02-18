@@ -1,4 +1,4 @@
-import { PositionOccupied, PositionOccupiedWood, PositionOccupiedRiver } from "./environement";
+import { PositionOccupied, PositionOccupiedWood, PositionOccupiedRiver, isHitByCar } from "./environement";
 
 export const loose = { river: false, car: false };
 
