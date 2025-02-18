@@ -25,9 +25,9 @@ import {
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { movePoulet, moveCamera } from './move.js';
+import { movePoulet } from './move.js';
 import { loadModel } from './loader.js';
-import { getNext } from './environement.js';
+import { getNext, woods } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
@@ -55,6 +55,7 @@ import { initAudio, playSound } from './sound.js';
 import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
+import { add } from 'three/tsl';
 
 // Example of hard link to official repo for data, if needed
 // const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
@@ -201,10 +202,12 @@ const animation = () => {
   currentScore = updateScore(poulet);
 
   const elapsed = clock.getElapsedTime();
+  updateEnvironment();
   //moveCamera(poulet, camera);
 
   controls.update();
-  renderer.render(scene, camera), poulet;
+  renderer.render(scene, camera);
+
 
   if (elapsed > 30) {
     renderer.setAnimationLoop(null);
@@ -251,4 +254,21 @@ function onWindowResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 
+}
+
+////////////////////////////////////UPDATE ENVIRONNEMENT////////////////////////////////////
+function moveWoodLogs() {
+  woods.forEach(wood => {
+    wood.position.x += 0.025;
+    if (wood.position.x > 10) {
+      wood.position.x = -10;
+    }
+    if (!scene.children.includes(wood)) {
+      scene.add(wood);
+    }
+  });
+}
+
+function updateEnvironment() {
+  moveWoodLogs();
 }

@@ -1,4 +1,4 @@
-import { PositionOccupied } from "./environement";
+import { PositionOccupied, PositionOccupiedWood, woods } from "./environement";
 
 export function movePoulet(poulet, direction) {
     const distance = 1;
@@ -15,64 +15,75 @@ export function movePoulet(poulet, direction) {
         if (PositionOccupied(Math.floor(startPosition.x), Math.floor(startPosition.z), direction)) {
             jumped = true;
         }
-        switch (direction) {
 
-            case 'down':
-                if (startPosition.z > 0 && jumped === false) {
-                    poulet.position.z = startPosition.z - distance * progress;
-                    poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
-                    poulet.rotation.y = Math.PI;
-                    if (progress === 1) {
-                        poulet.position.z = Math.round(poulet.position.z);
+        if (!jumped) {
+            switch (direction) {
+                case 'down':
+                    if (startPosition.z > 0) {
+                        poulet.position.z = startPosition.z - distance * progress;
+                        poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
+                        poulet.rotation.y = Math.PI;
+                        if (progress === 1) {
+                            poulet.position.z = Math.round(poulet.position.z);
+                        }
+                        break;
                     }
+                    poulet.rotation.y = Math.PI;
+                    jumped = true;
                     break;
-                }
-                poulet.rotation.y = Math.PI;
-                jumped = true;
-                break;
-            case 'up':
-                if (jumped === false) {
+                case 'up':
                     poulet.position.z = startPosition.z + distance * progress;
                     poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
                     poulet.rotation.y = 0;
                     if (progress === 1) {
                         poulet.position.z = Math.round(poulet.position.z);
                     }
-                }
-                poulet.rotation.y = 0;
-                jumped = true;
-                break;
-            case 'right':
-                if (startPosition.x > -4 && jumped === false) {
-                    poulet.position.x = startPosition.x - distance * progress;
-                    poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
+                    break;
+                case 'right':
+                    if (startPosition.x > -4) {
+                        poulet.position.x = startPosition.x - distance * progress;
+                        poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
+                        poulet.rotation.y = -Math.PI / 2;
+                        if (progress === 1) poulet.position.x = Math.round(poulet.position.x);
+                        break;
+                    }
                     poulet.rotation.y = -Math.PI / 2;
-                    if (progress === 1) poulet.position.x = Math.round(poulet.position.x);
+                    jumped = true;
                     break;
-                }
-                poulet.rotation.y = -Math.PI / 2;
-                jumped = true;
-                break;
-            case 'left':
-                if (startPosition.x < 4 && jumped === false) {
-                    poulet.position.x = startPosition.x + distance * progress;
-                    poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
+                case 'left':
+                    if (startPosition.x < 4) {
+                        poulet.position.x = startPosition.x + distance * progress;
+                        poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
+                        poulet.rotation.y = Math.PI / 2;
+                        if (progress === 1) poulet.position.x = Math.round(poulet.position.x);
+                        break;
+                    }
                     poulet.rotation.y = Math.PI / 2;
-                    if (progress === 1) poulet.position.x = Math.round(poulet.position.x);
+                    jumped = true;
                     break;
-                }
-                poulet.rotation.y = Math.PI / 2;
-                jumped = true;
-                break;
-            case 'jump':
-                jumped = true;
-                break;
+                case 'jump':
+                    jumped = true;
+                    break;
+            }
         }
 
         if (jumped) {
             poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
         }
 
+        if (PositionOccupiedWood(Math.floor(poulet.position.x), Math.floor(poulet.position.z))) {
+            if (!poulet.movingOnWood) {
+                poulet.movingOnWood = true;
+                function moveOnWood() {
+                    if (!poulet.movingOnWood) return;
+                    poulet.position.x += 0.025;
+                    requestAnimationFrame(moveOnWood);
+                }
+                moveOnWood();
+            }
+        } else {
+            poulet.movingOnWood = false;
+        }
         if (progress < 1) {
             requestAnimationFrame(animate);
         }
@@ -104,4 +115,4 @@ export function moveCamera(poulet, camera) {
     }
 
     requestAnimationFrame(animate);
-}   
+}
