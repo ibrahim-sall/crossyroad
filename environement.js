@@ -30,7 +30,7 @@ export function PositionOccupied(x, z, direction) {
     }
 }
 export function PositionOccupiedWood(x, z) {
-    return woods.some(wood => Math.abs(wood.position.z - z) < 0.7 && Math.abs(wood.position.x - x) < 0.7);
+    return woods.some(wood => Math.abs(wood.position.z - z) < 0.7 && Math.abs(wood.position.x - x) < wood.userData.size);
 }
 export function PositionOccupiedRiver(x, z) {
     return blockPosition.some(block => block.z === z && block.nature === 'river') && !PositionOccupiedWood(x, z);
@@ -81,6 +81,7 @@ export async function getNext(x, y, z) {
         const wood = more[woodKey].clone();
         const randomX = Math.floor(Math.random() * 16 - 8);
         wood.position.set(randomX, -0.5, Math.floor(z));
+        wood.userData = { size: woodKey[4], position: { x: randomX, z: Math.floor(z) } };
         woods.push(wood);
     }
     randomEnv.position.set(x, y, Math.floor(z));
