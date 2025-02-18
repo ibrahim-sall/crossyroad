@@ -27,7 +27,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 import { movePoulet } from './move.js';
 import { loadModel } from './loader.js';
-import { getNext, getWoods } from './environement.js';
+import { getNext, woods } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
@@ -257,12 +257,9 @@ function onWindowResize() {
 }
 
 ////////////////////////////////////UPDATE ENVIRONNEMENT////////////////////////////////////
-let woods = getWoods();
-
 function moveWoodLogs() {
-  woods = getWoods();
   woods.forEach(wood => {
-    wood.position.x += 0.05;
+    wood.position.x += 0.025;
     if (wood.position.x > 10) {
       wood.position.x = -10;
     }

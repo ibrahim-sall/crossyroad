@@ -1,4 +1,4 @@
-import { PositionOccupied } from "./environement";
+import { PositionOccupied, PositionOccupiedWood, woods } from "./environement";
 
 export function movePoulet(poulet, direction) {
     const distance = 1;
@@ -15,9 +15,9 @@ export function movePoulet(poulet, direction) {
         if (PositionOccupied(Math.floor(startPosition.x), Math.floor(startPosition.z), direction)) {
             jumped = true;
         }
+
         if (!jumped) {
             switch (direction) {
-
                 case 'down':
                     if (startPosition.z > 0) {
                         poulet.position.z = startPosition.z - distance * progress;
@@ -71,6 +71,19 @@ export function movePoulet(poulet, direction) {
             poulet.position.y = Math.sin(progress * Math.PI) * 0.5;
         }
 
+        if (PositionOccupiedWood(Math.floor(poulet.position.x), Math.floor(poulet.position.z))) {
+            if (!poulet.movingOnWood) {
+                poulet.movingOnWood = true;
+                function moveOnWood() {
+                    if (!poulet.movingOnWood) return;
+                    poulet.position.x += 0.025;
+                    requestAnimationFrame(moveOnWood);
+                }
+                moveOnWood();
+            }
+        } else {
+            poulet.movingOnWood = false;
+        }
         if (progress < 1) {
             requestAnimationFrame(animate);
         }
@@ -102,4 +115,4 @@ export function moveCamera(poulet, camera) {
     }
 
     requestAnimationFrame(animate);
-}   
+}

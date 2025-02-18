@@ -12,7 +12,7 @@ async function loadEnv(modelPath, texturePath) {
 }
 const blockPosition = [];
 const treePositions = [];
-const woods = [];
+export const woods = [];
 
 
 export function PositionOccupied(x, z, direction) {
@@ -29,19 +29,8 @@ export function PositionOccupied(x, z, direction) {
             return treePositions.some(pos => pos.x === x && pos.z === z);
     }
 }
-export function PositionOccupiedWood(x, z, direction) {
-    switch (direction) {
-        case 'up':
-            return woodPositions.some(pos => pos.x === x && pos.z === z + 1);
-        case 'down':
-            return woodPositions.some(pos => pos.x === x && pos.z === z - 1);
-        case 'right':
-            return woodPositions.some(pos => pos.x === x - 1 && pos.z === z);
-        case 'left':
-            return woodPositions.some(pos => pos.x === x + 1 && pos.z === z);
-        default:
-            return woodPositions.some(pos => pos.x === x && pos.z === z);
-    }
+export function PositionOccupiedWood(x, z) {
+    return woods.some(wood => Math.abs(wood.position.z - z) < 0.7 && Math.abs(wood.position.x - x) < 0.7);
 }
 
 async function initializeEnvs() {
@@ -95,9 +84,7 @@ export async function getNext(x, y, z) {
 }
 
 
-export function getWoods() {
-    return woods;
-}
+
 function removeOldBlocks(camera, scene) {
     const cameraZ = camera.position.z;
     for (let i = 0; i < scene.children.length; i++) {
