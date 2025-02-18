@@ -12,7 +12,7 @@ async function loadEnv(modelPath, texturePath) {
 }
 const blockPosition = [];
 const treePositions = [];
-const woodPositions = [];
+const woods = [];
 
 
 export function PositionOccupied(x, z, direction) {
@@ -60,6 +60,7 @@ async function initializeMore() {
 initializeEnvs();
 initializeMore();
 
+
 export async function getNext(x, y, z) {
     if (Object.keys(envs).length === 0 || Object.keys(more).length === 0) {
         await initializeEnvs();
@@ -84,9 +85,8 @@ export async function getNext(x, y, z) {
         const woodKey = 'wood' + Math.floor(Math.random() * 3);
         const wood = more[woodKey].clone();
         const randomX = Math.floor(Math.random() * 16 - 8);
-        wood.position.set(randomX, -0.1, 0);
-        woodPositions.push({ x: randomX, z: Math.floor(z) });
-        randomEnv.add(wood);
+        wood.position.set(randomX, -0.5, Math.floor(z));
+        woods.push(wood);
     }
     randomEnv.position.set(x, y, Math.floor(z));
     randomEnv.scale.set(1, 1, 1);
@@ -95,8 +95,9 @@ export async function getNext(x, y, z) {
 }
 
 
-
-
+export function getWoods() {
+    return woods;
+}
 function removeOldBlocks(camera, scene) {
     const cameraZ = camera.position.z;
     for (let i = 0; i < scene.children.length; i++) {
