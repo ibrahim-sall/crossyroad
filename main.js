@@ -25,7 +25,7 @@ import {
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { movePoulet, moveCamera } from './move.js';
+import { movePoulet } from './move.js';
 import { loadModel } from './loader.js';
 import { getNext } from './environement.js';
 import { initializeScore, updateScore } from './score.js';

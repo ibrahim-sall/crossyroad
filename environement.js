@@ -12,6 +12,7 @@ async function loadEnv(modelPath, texturePath) {
 }
 const blockPosition = [];
 const treePositions = [];
+const woodPositions = [];
 
 
 export function PositionOccupied(x, z, direction) {
@@ -28,6 +29,20 @@ export function PositionOccupied(x, z, direction) {
             return treePositions.some(pos => pos.x === x && pos.z === z);
     }
 }
+export function PositionOccupiedWood(x, z, direction) {
+    switch (direction) {
+        case 'up':
+            return woodPositions.some(pos => pos.x === x && pos.z === z + 1);
+        case 'down':
+            return woodPositions.some(pos => pos.x === x && pos.z === z - 1);
+        case 'right':
+            return woodPositions.some(pos => pos.x === x - 1 && pos.z === z);
+        case 'left':
+            return woodPositions.some(pos => pos.x === x + 1 && pos.z === z);
+        default:
+            return woodPositions.some(pos => pos.x === x && pos.z === z);
+    }
+}
 
 async function initializeEnvs() {
     envs['grass'] = await loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png');
@@ -37,7 +52,7 @@ async function initializeMore() {
     for (let i = 0; i < 3; i++) {
         more['tree' + i] = await loadEnv('assets/models/environment/tree/' + i + '/0.obj', 'assets/models/environment/tree/' + i + '/0.png');
     }
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 3; i++) {
         more['wood' + i] = await loadEnv('assets/models/environment/log/' + i + '/0.obj', 'assets/models/environment/log/' + i + '/0.png');
     }
 }
@@ -51,7 +66,7 @@ export async function getNext(x, y, z) {
         await initializeMore();
     }
 
-    if (blockPosition.includes(z)) {
+    if (blockPosition.some(block => block.z === Math.floor(z))) {
         return null;
     };
     const envKeys = Object.keys(envs);
@@ -65,11 +80,22 @@ export async function getNext(x, y, z) {
         treePositions.push({ x: randomX, z: Math.floor(z) });
         randomEnv.add(tree);
     }
+    if (randomKey === 'river') {
+        const woodKey = 'wood' + Math.floor(Math.random() * 3);
+        const wood = more[woodKey].clone();
+        const randomX = Math.floor(Math.random() * 16 - 8);
+        wood.position.set(randomX, -0.1, 0);
+        woodPositions.push({ x: randomX, z: Math.floor(z) });
+        randomEnv.add(wood);
+    }
     randomEnv.position.set(x, y, Math.floor(z));
     randomEnv.scale.set(1, 1, 1);
-    blockPosition.push(z);
+    blockPosition.push({ nature: randomKey, z: Math.floor(z) });
     return randomEnv;
 }
+
+
+
 
 function removeOldBlocks(camera, scene) {
     const cameraZ = camera.position.z;
