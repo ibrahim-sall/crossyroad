@@ -81,7 +81,7 @@ export async function getNext(x, y, z) {
     let randomKey;
     const previousBlock = blockPosition.find(block => block.z === Math.floor(z) - 1);
 
-    if (previousBlock && (previousBlock.nature === 'river' || previousBlock.nature === 'road')) {
+    if (previousBlock && (previousBlock.nature === 'river')) {
         randomKey = envKeys[Math.random() < 0.6 ? 0 : 1];
     } else {
         randomKey = envKeys[Math.floor(Math.random() * envKeys.length)];
