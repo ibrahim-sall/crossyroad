@@ -63,26 +63,51 @@ export async function getNext(x, y, z) {
         return null;
     };
     const envKeys = Object.keys(envs);
-    let randomKey = envKeys[Math.floor(Math.random() * 2)];
+    let randomKey;
+    const previousBlock = blockPosition.find(block => block.z === Math.floor(z) - 1);
+
+    if (previousBlock && previousBlock.nature === 'river') {
+        randomKey = envKeys[Math.random() < 0.6 ? 0 : 1];
+    } else {
+        randomKey = envKeys[Math.floor(Math.random() * envKeys.length)];
+    }
     if (z == 0) {
         randomKey = 'grass';
     }
     const randomEnv = envs[randomKey].clone();
     if (randomKey === 'grass') {
-        const treeKey = 'tree' + Math.floor(Math.random() * 3);
-        const tree = more[treeKey].clone();
-        const randomX = Math.floor(Math.random() * 16 - 8);
-        tree.position.set(randomX, 0.4, 0);
-        treePositions.push({ x: randomX, z: Math.floor(z) });
-        randomEnv.add(tree);
+        const treeCount = Math.floor(Math.random() * 8) + 1;
+        for (let i = 0; i < treeCount; i++) {
+            const treeKey = 'tree' + Math.floor(Math.random() * 3);
+            const tree = more[treeKey].clone();
+            const randomX = Math.floor(Math.random() * 16 - 8);
+            tree.position.set(randomX, 0.4, 0);
+            treePositions.push({ x: randomX, z: Math.floor(z) });
+            randomEnv.add(tree);
+        }
     }
     if (randomKey === 'river') {
-        const woodKey = 'wood' + Math.floor(Math.random() * 3);
-        const wood = more[woodKey].clone();
-        const randomX = Math.floor(Math.random() * 16 - 8);
-        wood.position.set(randomX, -0.5, Math.floor(z));
-        wood.userData = { size: woodKey[4], position: { x: randomX, z: Math.floor(z) } };
-        woods.push(wood);
+        const woodCount = Math.floor(Math.random() * 4) + 1;
+        const previousRiver = blockPosition.find(block => block.z === Math.floor(z) - 1 && block.nature === 'river');
+        const previousWoods = woods.filter(wood => Math.floor(wood.position.z) === Math.floor(z) - 1);
+
+        for (let i = 0; i < woodCount; i++) {
+            const woodKey = 'wood' + Math.floor(Math.random() * 3);
+            const wood = more[woodKey].clone();
+            let randomX;
+
+            if (previousRiver && previousWoods.length > 0) {
+                const previousWood = previousWoods[i % previousWoods.length];
+                randomX = previousWood.position.x;
+            } else {
+                randomX = Math.floor(Math.random() * 16 - 8);
+            }
+
+            wood.position.set(randomX, -0.5, Math.floor(z));
+            wood.userData = { size: woodKey[4], position: { x: randomX, z: Math.floor(z) } };
+            woods.push(wood);
+            randomEnv.add(wood);
+        }
     }
     randomEnv.position.set(x, y, Math.floor(z));
     randomEnv.scale.set(1, 1, 1);

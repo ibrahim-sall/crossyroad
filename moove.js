@@ -80,6 +80,9 @@ export function movePoulet(poulet, direction) {
                     if (!poulet.movingOnWood) return;
                     poulet.position.x += 0.025;
                     requestAnimationFrame(moveOnWood);
+                    if (poulet.position.x > 4) {
+                        loose.river = true;
+                    }
                 }
                 moveOnWood();
             }
