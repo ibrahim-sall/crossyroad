@@ -146,7 +146,6 @@ startButton.addEventListener('click', () => {
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
 let poulet = null;
-let pouletBox = null;
 
 export async function addModel(modelPath, texturePath) {
   const model = await loadModel(modelPath, texturePath);
@@ -156,7 +155,6 @@ export async function addModel(modelPath, texturePath) {
   scene.add(model);
 
   poulet = model;
-  pouletBox = new Box3().setFromObject(poulet);
 }
 
 
@@ -294,24 +292,31 @@ function updateEnvironment() {
   moveCars();
 }
 
-////////////////////////////////////LOOOSE////////////////////////////////////
+////////////////////////////////////LOOOOOOOOOOOOOOOOSE////////////////////////////////////
 function isLoose() {
   if (isHitByCar(poulet.position.x, poulet.position.z)) {
     loose.car = true;
     poulet.rotation.z = -Math.PI / 2;
     poulet.rotation.x = Math.PI / 2;
+    poulet.rotation.y = 0;
     poulet.position.x += 1.5;
   }
   if (loose.river) {
+    poulet.position.y -= 0.4;
     playSoundRiver();
     renderer.setAnimationLoop(null);
-    setTimeout(popUpLoose, 1000);
+    setTimeout(() => {
+      popUpLoose();
+      playHomer();
+    }, 1500);
   }
   if (loose.car) {
     playSoundCar();
     renderer.setAnimationLoop(null);
-    setTimeout(popUpLoose, 1000);
-    playHomer();
+    setTimeout(() => {
+      popUpLoose();
+      playHomer();
+    }, 1500);
   }
 }
 
@@ -332,7 +337,7 @@ function popUpLoose() {
   loosePopup.style.zIndex = '1000';
 
   const looseMessage = document.createElement('div');
-  looseMessage.innerText = 'You Lost!';
+  looseMessage.innerText = "C'est Perdu!";
   looseMessage.style.color = 'white';
   looseMessage.style.fontSize = '40px';
   looseMessage.style.marginBottom = '20px';
