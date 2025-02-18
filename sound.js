@@ -35,4 +35,13 @@ export function playSound() {
     if (i == 12) i = 0;
 }
 
-
+export function playSoundRiver() {
+    if (sound.isPlaying) {
+        sound.stop();
+    }
+    audioLoader.load('assets/audio/watersplashlow.mp3', function (buffer) {
+        sound.setBuffer(buffer);
+        sound.setVolume(0.7);
+        sound.play();
+    });
+}

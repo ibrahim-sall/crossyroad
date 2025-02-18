@@ -25,11 +25,11 @@ import {
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { movePoulet } from './move.js';
+import { movePoulet, loose } from './move.js';
 import { loadModel } from './loader.js';
 import { getNext, woods } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
-import { initAudio, playSound } from './sound.js';
+import { initAudio, playSound, playSoundRiver } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -204,6 +204,7 @@ const animation = () => {
   const elapsed = clock.getElapsedTime();
   updateEnvironment();
   //moveCamera(poulet, camera);
+  isLoose();
 
   controls.update();
   renderer.render(scene, camera);
@@ -269,6 +270,57 @@ function moveWoodLogs() {
   });
 }
 
+
+
 function updateEnvironment() {
   moveWoodLogs();
+}
+
+////////////////////////////////////LOOOSE////////////////////////////////////
+function isLoose() {
+  if (loose.river) {
+    playSoundRiver();
+    renderer.setAnimationLoop(null);
+    popUpLoose();
+  }
+}
+
+function popUpLoose() {
+  const loosePopup = document.createElement('div');
+  loosePopup.style.position = 'fixed';
+  loosePopup.style.top = '0';
+  loosePopup.style.left = '0';
+  loosePopup.style.width = '100%';
+  loosePopup.style.height = '100%';
+  loosePopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  loosePopup.style.display = 'flex';
+  loosePopup.style.flexDirection = 'column';
+  loosePopup.style.justifyContent = 'center';
+  loosePopup.style.alignItems = 'center';
+  loosePopup.style.zIndex = '1000';
+
+  const looseMessage = document.createElement('div');
+  looseMessage.innerText = 'You Lost!';
+  looseMessage.style.color = 'white';
+  looseMessage.style.fontSize = '40px';
+  looseMessage.style.marginBottom = '20px';
+
+  const scoreMessage = document.createElement('div');
+  scoreMessage.innerText = `Score: ${currentScore}`;
+  scoreMessage.style.color = 'purple';
+  scoreMessage.style.fontSize = '30px';
+
+  const restartButton = document.createElement('button');
+  restartButton.innerText = 'Restart';
+  restartButton.style.padding = '10px 20px';
+  restartButton.style.fontSize = '20px';
+  restartButton.style.cursor = 'pointer';
+  restartButton.addEventListener('click', () => {
+    window.location.reload();
+  });
+
+  loosePopup.appendChild(looseMessage);
+  loosePopup.appendChild(scoreMessage);
+  loosePopup.appendChild(restartButton);
+  document.body.appendChild(loosePopup);
 }

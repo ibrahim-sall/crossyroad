@@ -1,4 +1,6 @@
-import { PositionOccupied, PositionOccupiedWood, woods } from "./environement";
+import { PositionOccupied, PositionOccupiedWood, PositionOccupiedRiver } from "./environement";
+
+export const loose = { river: false, car: false };
 
 export function movePoulet(poulet, direction) {
     const distance = 1;
@@ -83,6 +85,10 @@ export function movePoulet(poulet, direction) {
             }
         } else {
             poulet.movingOnWood = false;
+        }
+        if (PositionOccupiedRiver(poulet.position.x, poulet.position.z)) {
+            loose.river = true;
+            poulet.position.y = - Math.sin(progress * Math.PI) * 0.5;
         }
         if (progress < 1) {
             requestAnimationFrame(animate);

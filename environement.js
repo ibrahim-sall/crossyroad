@@ -32,6 +32,9 @@ export function PositionOccupied(x, z, direction) {
 export function PositionOccupiedWood(x, z) {
     return woods.some(wood => Math.abs(wood.position.z - z) < 0.7 && Math.abs(wood.position.x - x) < 0.7);
 }
+export function PositionOccupiedRiver(x, z) {
+    return blockPosition.some(block => block.z === z && block.nature === 'river') && !PositionOccupiedWood(x, z);
+}
 
 async function initializeEnvs() {
     envs['grass'] = await loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png');
@@ -60,7 +63,10 @@ export async function getNext(x, y, z) {
         return null;
     };
     const envKeys = Object.keys(envs);
-    const randomKey = envKeys[Math.floor(Math.random() * 2)];
+    let randomKey = envKeys[Math.floor(Math.random() * 2)];
+    if (z == 0) {
+        randomKey = 'grass';
+    }
     const randomEnv = envs[randomKey].clone();
     if (randomKey === 'grass') {
         const treeKey = 'tree' + Math.floor(Math.random() * 3);
