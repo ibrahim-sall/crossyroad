@@ -71,3 +71,14 @@ export function playHorn() {
         sound.play();
     });
 }
+
+export function playHomer() {
+    if (sound.isPlaying) {
+        sound.stop();
+    }
+    audioLoader.load('assets/audio/homer.mp3', function (buffer) {
+        sound.setBuffer(buffer);
+        sound.setVolume(0.7);
+        sound.play();
+    });
+}

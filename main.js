@@ -29,7 +29,7 @@ import { movePoulet, loose } from './moove.js';
 import { loadModel } from './loader.js';
 import { getNext, woods, cars, isHitByCar } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
-import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn } from './sound.js';
+import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
 // import * as THREE from 'three'
 
@@ -311,6 +311,7 @@ function isLoose() {
     playSoundCar();
     renderer.setAnimationLoop(null);
     setTimeout(popUpLoose, 1000);
+    playHomer();
   }
 }
 
