@@ -16,25 +16,31 @@ const treePositions = [];
 export const woods = [];
 export const cars = [];
 
-const list_vehicles = ['blue_car', 'green_car', 'taxi', 'purple_car', 'red_truck']
+const list_vehicles = ['blue_car', 'green_car', 'taxi', 'purple_car', 'red_truck'];
+const probabilities = {
+    grass: 0.4,
+    river: 0.3,
+    road: 0.3
+};
 
 
 export function PositionOccupied(x, z, direction) {
+    const tolerance = 0.3;
     switch (direction) {
         case 'up':
-            return treePositions.some(pos => pos.x === x && pos.z === z + 1);
+            return treePositions.some(pos => Math.abs(pos.x - x) < tolerance && Math.abs(pos.z - (z + 1)) < tolerance);
         case 'down':
-            return treePositions.some(pos => pos.x === x && pos.z === z - 1);
+            return treePositions.some(pos => Math.abs(pos.x - x) < tolerance && Math.abs(pos.z - (z - 1)) < tolerance);
         case 'right':
-            return treePositions.some(pos => pos.x === x - 1 && pos.z === z);
+            return treePositions.some(pos => Math.abs(pos.x - (x - 1)) < tolerance && Math.abs(pos.z - z) < tolerance);
         case 'left':
-            return treePositions.some(pos => pos.x === x + 1 && pos.z === z);
+            return treePositions.some(pos => Math.abs(pos.x - (x + 1)) < tolerance && Math.abs(pos.z - z) < tolerance);
         default:
-            return treePositions.some(pos => pos.x === x && pos.z === z);
+            return treePositions.some(pos => Math.abs(pos.x - x) < tolerance && Math.abs(pos.z - z) < tolerance);
     }
 }
 export function PositionOccupiedWood(x, z) {
-    return woods.some(wood => Math.abs(wood.position.z - z) < 0.7 && Math.abs(wood.position.x - x) < wood.userData.size);
+    return woods.some(wood => Math.abs(wood.position.z - z) < 0.6 && Math.abs(wood.position.x - x) < wood.userData.size);
 }
 export function PositionOccupiedRiver(x, z) {
     return blockPosition.some(block => block.z === z && block.nature === 'river') && !PositionOccupiedWood(x, z);
@@ -82,16 +88,24 @@ export async function getNext(x, y, z) {
     const previousBlock = blockPosition.find(block => block.z === Math.floor(z) - 1);
 
     if (previousBlock && (previousBlock.nature === 'river')) {
-        randomKey = envKeys[Math.random() < 0.6 ? 0 : 1];
+        randomKey = envKeys[Math.random() < 0.65 ? 0 : 1];
     } else {
-        randomKey = envKeys[Math.floor(Math.random() * envKeys.length)];
+        const randomValue = Math.random();
+        let cumulativeProbability = 0;
+        for (const key of envKeys) {
+            cumulativeProbability += probabilities[key];
+            if (randomValue < cumulativeProbability) {
+                randomKey = key;
+                break;
+            }
+        }
     }
     if (z == 0) {
         randomKey = 'grass';
     }
     const randomEnv = envs[randomKey].clone();
     if (randomKey === 'grass') {
-        const treeCount = Math.floor(Math.random() * 8) + 1;
+        const treeCount = Math.floor(Math.random() * 5) + 1;
         for (let i = 0; i < treeCount; i++) {
             const treeKey = 'tree' + Math.floor(Math.random() * 3);
             const tree = more[treeKey].clone();
