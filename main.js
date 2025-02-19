@@ -7,25 +7,17 @@ import {
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
-  Mesh,
   Box3,
   AmbientLight,
   AxesHelper,
-  TextureLoader,
-  PlaneGeometry,
-  ShadowMaterial,
-  LoadingManager,
   Color,
-  SRGBColorSpace,
-  Vector3,
-  Clock,
-  DefaultLoadingManager,
+  Clock
 } from 'three';
 
 
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { movePoulet, loose } from './moove.js';
+import { movePoulet, loose, moveCamera } from './moove.js';
 import { loadModel } from './loader.js';
 import { getNext, woods, cars, isHitByCar } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
@@ -56,6 +48,7 @@ import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
 import { add } from 'three/tsl';
+import { remove } from 'three/examples/jsm/libs/tween.module.js';
 
 // Example of hard link to official repo for data, if needed
 // const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
@@ -73,47 +66,48 @@ const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-
 ////////////////////////////////////CAMERA////////////////////////////////////
-function saveCameraPosition() {
-  const cameraPosition = {
-    x: camera.position.x,
-    y: camera.position.y,
-    z: camera.position.z,
-    rotation: {
-      x: camera.rotation.x,
-      y: camera.rotation.y,
-      z: camera.rotation.z
-    }
-  };
-  localStorage.setItem('cameraPosition', JSON.stringify(cameraPosition));
-}
+// function saveCameraPosition() {
+//   const cameraPosition = {
+//     x: camera.position.x,
+//     y: camera.position.y,
+//     z: camera.position.z,
+//     rotation: {
+//       x: camera.rotation.x,
+//       y: camera.rotation.y,
+//       z: camera.rotation.z
+//     }
+//   };
+//   localStorage.setItem('cameraPosition', JSON.stringify(cameraPosition));
+// }
 
-function loadCameraPosition() {
-  const cameraPosition = JSON.parse(localStorage.getItem('cameraPosition'));
-  if (cameraPosition) {
-    camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-    camera.rotation.set(cameraPosition.rotation.x, cameraPosition.rotation.y, cameraPosition.rotation.z);
-  }
-}
+// function loadCameraPosition() {
+//   const cameraPosition = JSON.parse(localStorage.getItem('cameraPosition'));
+//   if (cameraPosition) {
+//     camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+//     camera.rotation.set(cameraPosition.rotation.x, cameraPosition.rotation.y, cameraPosition.rotation.z);
+//   }
+// }
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.25;
+// controls.screenSpacePanning = false;
+// controls.maxPolarAngle = Math.PI / 2;
 
-function resetCameraPosition() {
-  camera.position.set(-2.3, 4.1, -3.8);
-  camera.rotation.set(-2.3, -0.4, -2.7);
-  saveCameraPosition();
-}
+camera.position.set(-3, 6.5, -10);
+camera.lookAt(0, 0, 0);
 
-window.addEventListener('beforeunload', saveCameraPosition);
-window.addEventListener('load', loadCameraPosition);
 
-const resetButton = document.createElement('button');
-resetButton.innerText = 'Reset Camera';
-resetButton.style.position = 'absolute';
-resetButton.style.top = '10px';
-resetButton.style.right = '10px';
-resetButton.addEventListener('click', resetCameraPosition);
-document.body.appendChild(resetButton);
+// window.addEventListener('beforeunload', saveCameraPosition);
+// window.addEventListener('load', loadCameraPosition);
+
+// const resetButton = document.createElement('button');
+// resetButton.innerText = 'Reset Camera';
+// resetButton.style.position = 'absolute';
+// resetButton.style.top = '10px';
+// resetButton.style.right = '10px';
+// resetButton.addEventListener('click', resetCameraPosition);
+// document.body.appendChild(resetButton);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
@@ -146,7 +140,6 @@ startButton.addEventListener('click', () => {
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
 
 let poulet = null;
-let pouletBox = null;
 
 export async function addModel(modelPath, texturePath) {
   const model = await loadModel(modelPath, texturePath);
@@ -156,7 +149,6 @@ export async function addModel(modelPath, texturePath) {
   scene.add(model);
 
   poulet = model;
-  pouletBox = new Box3().setFromObject(poulet);
 }
 
 
@@ -168,7 +160,7 @@ poulet = addModel('assets/models/characters/chicken/0.obj', 'assets/models/chara
 const clock = new Clock();
 scene.add(light);
 scene.add(new AxesHelper(5))
-scene.background = new Color(0xadd8e6);
+scene.background = new Color(0x87C6DD);
 
 ////////////////////////////////////ENVIRONEMENT////////////////////////////////////
 async function addEnvironmentBlock(i) {
@@ -200,22 +192,18 @@ const animation = () => {
   renderer.setAnimationLoop(animation);
 
   currentScore = updateScore(poulet);
+  // controls.update();
 
   const elapsed = clock.getElapsedTime();
   updateEnvironment();
-  //moveCamera(poulet, camera);
+  moveCamera(poulet.position.z - 4, camera);
   isLoose();
 
-  controls.update();
   renderer.render(scene, camera);
   if (elapsed % 5 < 0.016) {
     playHorn();
   }
 
-  if (elapsed > 30) {
-    renderer.setAnimationLoop(null);
-    return;
-  }
 };
 
 poulet.then(() => {
@@ -286,32 +274,48 @@ function moveCars() {
   });
 }
 
+function removeOldBlocks(z) {
+  scene.children.forEach(child => {
+    if (child.position.z < z - 10 && child !== light) {
+      scene.remove(child);
+    }
+  });
+}
+
 
 
 
 function updateEnvironment() {
   moveWoodLogs();
   moveCars();
+  removeOldBlocks(poulet.position.z);
 }
 
-////////////////////////////////////LOOOSE////////////////////////////////////
+////////////////////////////////////LOOOOOOOOOOOOOOOOSE////////////////////////////////////
 function isLoose() {
   if (isHitByCar(poulet.position.x, poulet.position.z)) {
     loose.car = true;
     poulet.rotation.z = -Math.PI / 2;
     poulet.rotation.x = Math.PI / 2;
+    poulet.rotation.y = 0;
     poulet.position.x += 1.5;
   }
   if (loose.river) {
+    poulet.position.y -= 0.4;
     playSoundRiver();
     renderer.setAnimationLoop(null);
-    setTimeout(popUpLoose, 1000);
+    setTimeout(() => {
+      popUpLoose();
+      playHomer();
+    }, 1000);
   }
   if (loose.car) {
     playSoundCar();
     renderer.setAnimationLoop(null);
-    setTimeout(popUpLoose, 1000);
-    playHomer();
+    setTimeout(() => {
+      popUpLoose();
+      playHomer();
+    }, 1000);
   }
 }
 
@@ -332,7 +336,7 @@ function popUpLoose() {
   loosePopup.style.zIndex = '1000';
 
   const looseMessage = document.createElement('div');
-  looseMessage.innerText = 'You Lost!';
+  looseMessage.innerText = "C'est Perdu!";
   looseMessage.style.color = 'white';
   looseMessage.style.fontSize = '40px';
   looseMessage.style.marginBottom = '20px';

@@ -39,7 +39,7 @@ export function playSoundRiver() {
     if (sound.isPlaying) {
         sound.stop();
     }
-    audioLoader.load('assets/audio/watersplashlow.mp3', function (buffer) {
+    audioLoader.load('assets/audio/water.wav', function (buffer) {
         sound.setBuffer(buffer);
         sound.setVolume(0.7);
         sound.play();
@@ -72,13 +72,16 @@ export function playHorn() {
     });
 }
 
+
 export function playHomer() {
     if (sound.isPlaying) {
         sound.stop();
     }
-    audioLoader.load('assets/audio/homer.mp3', function (buffer) {
-        sound.setBuffer(buffer);
-        sound.setVolume(0.7);
-        sound.play();
+    const homerSound = new Audio(listener);
+    const audioHomer = new AudioLoader();
+    audioHomer.load('assets/audio/homer.wav', function (buffer) {
+        homerSound.setBuffer(buffer);
+        homerSound.setVolume(0.7);
+        homerSound.play();
     });
 }
