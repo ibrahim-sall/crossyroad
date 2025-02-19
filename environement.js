@@ -150,13 +150,3 @@ export async function getNext(x, y, z) {
 }
 
 
-
-function removeOldBlocks(camera, scene) {
-    const cameraZ = camera.position.z;
-    for (let i = 0; i < scene.children.length; i++) {
-        const obj = scene.children[i];
-        if (obj.position.z > cameraZ + 10) {
-            scene.remove(obj);
-        }
-    }
-}

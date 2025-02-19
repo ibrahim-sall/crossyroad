@@ -101,22 +101,22 @@ export function movePoulet(poulet, direction) {
     requestAnimationFrame(animate);
 }
 
-export function moveCamera(poulet, camera) {
-    if (!poulet || !camera) {
+export function moveCamera(z, camera) {
+    if (!camera) {
         console.error('Poulet or camera is not defined');
         return;
     }
 
     const duration = 500;
     const startTime = performance.now();
-    const startPosition = { z: camera.position.z };
+    const startPosition = { z: camera.position.z, rotationY: camera.rotation.y };
 
     function animate() {
         const currentTime = performance.now();
         const elapsedTime = currentTime - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
 
-        //camera.position.z = startPosition.z + (poulet.position.z - startPosition.z) * progress;
+        camera.position.z = startPosition.z + (z - startPosition.z) * progress;
 
         if (progress < 1) {
             requestAnimationFrame(animate);
