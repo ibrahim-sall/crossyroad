@@ -159,7 +159,6 @@ poulet = addModel('assets/models/characters/chicken/0.obj', 'assets/models/chara
 
 const clock = new Clock();
 scene.add(light);
-scene.add(new AxesHelper(5))
 scene.background = new Color(0x87C6DD);
 
 ////////////////////////////////////ENVIRONEMENT////////////////////////////////////
