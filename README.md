@@ -28,6 +28,7 @@ The aim is to get as far as possible without being hit by a car or falling into 
 ## Installing
 
 You can either play by using the git hub pages address: 
+                    https://ibrahim-sall.github.io/crossyroad/
 
 Or clone the project directly on your computer by following these steps:
 
