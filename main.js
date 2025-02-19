@@ -183,6 +183,17 @@ initAudio(camera);
 ////////////////////////////////////SCORE////////////////////////////////////
 initializeScore();
 let currentScore = 0;
+function saveBestScore(score) {
+  const bestScore = localStorage.getItem('bestScore');
+  if (!bestScore || score > bestScore) {
+    localStorage.setItem('bestScore', score);
+  }
+}
+
+function getBestScore() {
+  return localStorage.getItem('bestScore') || 0;
+}
+
 
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 const animation = () => {
@@ -199,7 +210,10 @@ const animation = () => {
   isLoose();
 
   renderer.render(scene, camera);
-  if (elapsed % 5 < 0.016) {
+  if (elapsed > 30) {
+    renderer.setAnimationLoop(null);
+  }
+  if (elapsed % 5 < 0.1) {
     playHorn();
   }
 
@@ -292,6 +306,7 @@ function updateEnvironment() {
 
 ////////////////////////////////////LOOOOOOOOOOOOOOOOSE////////////////////////////////////
 function isLoose() {
+  saveBestScore(currentScore);
   if (isHitByCar(poulet.position.x, poulet.position.z)) {
     loose.car = true;
     poulet.rotation.z = -Math.PI / 2;
@@ -345,6 +360,13 @@ function popUpLoose() {
   scoreMessage.style.color = 'purple';
   scoreMessage.style.fontSize = '30px';
 
+  const bestScore = getBestScore();
+  const bestScoreMessage = document.createElement('div');
+  bestScoreMessage.innerText = `Best Score: ${bestScore}`;
+  bestScoreMessage.style.color = 'gold';
+  bestScoreMessage.style.fontSize = '30px';
+  bestScoreMessage.style.marginTop = '10px';
+
   const restartButton = document.createElement('button');
   restartButton.innerText = 'Restart';
   restartButton.style.padding = '10px 20px';
@@ -356,6 +378,7 @@ function popUpLoose() {
 
   loosePopup.appendChild(looseMessage);
   loosePopup.appendChild(scoreMessage);
+  loosePopup.appendChild(bestScoreMessage);
   loosePopup.appendChild(restartButton);
   document.body.appendChild(loosePopup);
 }
