@@ -103,30 +103,17 @@ camera.lookAt(0, 0, 0);
 
 // const resetButton = document.createElement('button');
 // resetButton.innerText = 'Reset Camera';
-// resetButton.style.position = 'absolute';
-// resetButton.style.top = '10px';
-// resetButton.style.right = '10px';
+// resetButton.id = 'resetButton';
 // resetButton.addEventListener('click', resetCameraPosition);
 // document.body.appendChild(resetButton);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
-startPopup.style.position = 'fixed';
-startPopup.style.top = '0';
-startPopup.style.left = '0';
-startPopup.style.width = '100%';
-startPopup.style.height = '100%';
-startPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-startPopup.style.display = 'flex';
-startPopup.style.justifyContent = 'center';
-startPopup.style.alignItems = 'center';
-startPopup.style.zIndex = '1000';
+startPopup.id = 'startPopup';
 
 const startButton = document.createElement('button');
-startButton.innerText = 'Start';
-startButton.style.padding = '20px';
-startButton.style.fontSize = '20px';
-startButton.style.cursor = 'pointer';
+startButton.innerText = 'START';
+startButton.id = 'startButton';
 
 startPopup.appendChild(startButton);
 document.body.appendChild(startPopup);
@@ -210,9 +197,7 @@ const animation = () => {
   isLoose();
 
   renderer.render(scene, camera);
-  if (elapsed > 30) {
-    renderer.setAnimationLoop(null);
-  }
+
   if (elapsed % 5 < 0.1) {
     playHorn();
   }
@@ -337,48 +322,26 @@ function isLoose() {
 
 function popUpLoose() {
   const loosePopup = document.createElement('div');
-  loosePopup.style.position = 'fixed';
-  loosePopup.style.top = '0';
-  loosePopup.style.left = '0';
-  loosePopup.style.width = '100%';
-  loosePopup.style.height = '100%';
-  loosePopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  loosePopup.style.display = 'flex';
-  loosePopup.style.flexDirection = 'column';
-  loosePopup.style.justifyContent = 'center';
-  loosePopup.style.alignItems = 'center';
-  loosePopup.style.zIndex = '1000';
-
-  const looseMessage = document.createElement('div');
-  looseMessage.innerText = "C'est Perdu!";
-  looseMessage.style.color = 'white';
-  looseMessage.style.fontSize = '40px';
-  looseMessage.style.marginBottom = '20px';
+  loosePopup.id = 'loosePopup';
 
   const scoreMessage = document.createElement('div');
   scoreMessage.innerText = `Score: ${currentScore}`;
-  scoreMessage.style.color = 'purple';
-  scoreMessage.style.fontSize = '30px';
+  scoreMessage.id = 'scoreMessage';
 
   const bestScore = getBestScore();
   const bestScoreMessage = document.createElement('div');
   bestScoreMessage.innerText = `Best Score: ${bestScore}`;
-  bestScoreMessage.style.color = 'gold';
-  bestScoreMessage.style.fontSize = '30px';
-  bestScoreMessage.style.marginTop = '10px';
+  bestScoreMessage.id = 'bestScoreMessage';
 
   const restartButton = document.createElement('button');
   restartButton.innerText = 'Restart';
-  restartButton.style.padding = '10px 20px';
-  restartButton.style.fontSize = '20px';
-  restartButton.style.cursor = 'pointer';
+  restartButton.id = 'restartButton';
   restartButton.addEventListener('click', () => {
     window.location.reload();
   });
 
-  loosePopup.appendChild(looseMessage);
   loosePopup.appendChild(scoreMessage);
-  loosePopup.appendChild(bestScoreMessage);
   loosePopup.appendChild(restartButton);
+  loosePopup.appendChild(bestScoreMessage);
   document.body.appendChild(loosePopup);
 }
