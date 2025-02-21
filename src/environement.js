@@ -65,6 +65,11 @@ async function initializeMore() {
 async function initializeCar() {
     list_vehicles.forEach(async (nom) => {
         car[nom] = await loadEnv(`assets/models/vehicles/${nom}/0.obj`, `assets/models/vehicles/${nom}/0.png`);
+        car[nom].traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true;
+            }
+        });
     });
 }
 
@@ -109,6 +114,11 @@ export async function getNext(x, y, z) {
         for (let i = 0; i < treeCount; i++) {
             const treeKey = 'tree' + Math.floor(Math.random() * 3);
             const tree = more[treeKey].clone();
+            tree.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                }
+            });
             const randomX = Math.floor(Math.random() * 16 - 8);
             if (z === 0 && randomX === 0) {
                 continue;
@@ -162,5 +172,4 @@ export async function getNext(x, y, z) {
     blockPosition.push({ nature: randomKey, z: Math.floor(z) });
     return randomEnv;
 }
-
 
