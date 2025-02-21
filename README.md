@@ -55,7 +55,9 @@ Or clone the project directly on your computer by following these steps:
 - It is based on Mr Doganis three & vite template which can be found here:
       https://github.com/fdoganis/three_vite
 
-- All 3D objects and audio are from https://github.com/EvanBacon/Expo-Crossy-Road under MIT licence. 
+- All 3D objects and audio are from https://github.com/EvanBacon/Expo-Crossy-Road under MIT licence.
+  
+- Lot of examples where used from https://threejs.org/, like shadows or lights implementations.
 
 ## License
 This project source code is made available under the GNU GPLv3  license. Some of the dependencies are licensed differently. 
