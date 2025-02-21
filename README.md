@@ -14,7 +14,7 @@ Crossy-Road Game is a 3D web-based game inspired by the classic arcade game Frog
 
 ## Table of contents
 * [Features](#features)
-* [Installing](#installing)
+* [Install](#install)
 * [Context & Bibliography](#context--bibliography)
 * [License](#license)
 
@@ -25,7 +25,7 @@ Crossy-Road Game is a 3D web-based game inspired by the classic arcade game Frog
 When you land on the page, you can click on start for a new fun game. You can move around this cartoon world using directional arrows. 
 
 The aim is to get as far as possible without being hit by a car or falling into a river. 
-## Installing
+## Install
 
 You can either play by using the git hub pages address: 
                     https://ibrahim-sall.github.io/crossyroad/
