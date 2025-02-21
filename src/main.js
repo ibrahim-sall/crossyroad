@@ -9,13 +9,12 @@ import {
   WebGLRenderer,
   Box3,
   AmbientLight,
-  AxesHelper,
+  PCFSoftShadowMap,
+  DirectionalLight,
   Color,
   Clock
 } from 'three';
 
-
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 import { movePoulet, loose, moveCamera } from './moove.js';
 import { loadModel } from './loader.js';
@@ -60,11 +59,37 @@ const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
 
-const light = new AmbientLight(0xffffff, 2.0); // sxoft white light
+////////////////////////////////////LIGHT////////////////////////////////////
+
+const light = new AmbientLight(0xffffff, 0.8);
 
 const renderer = new WebGLRenderer();
+
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = PCFSoftShadowMap;
+
+
+const directionalLight = new DirectionalLight(0xffffff, 1.5);
+directionalLight.position.set(12, 20, -5);
+directionalLight.castShadow = true;
+
+directionalLight.shadow.mapSize.width = 2048;
+directionalLight.shadow.mapSize.height = 2048;
+directionalLight.shadow.camera.left = -50;
+directionalLight.shadow.camera.right = 50;
+directionalLight.shadow.camera.top = 50;
+directionalLight.shadow.camera.bottom = -50;
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 500;
+
+scene.add(directionalLight);
+
+scene.add(light);
+scene.background = new Color(0x87C6DD);
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
 
 ////////////////////////////////////CAMERA////////////////////////////////////
 // function saveCameraPosition() {
@@ -133,6 +158,11 @@ export async function addModel(modelPath, texturePath) {
 
   model.position.set(0, 0, 0);
   model.scale.set(1, 1, 1);
+  model.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;
+    }
+  });
   scene.add(model);
 
   poulet = model;
@@ -145,13 +175,18 @@ poulet = addModel('assets/models/characters/chicken/0.obj', 'assets/models/chara
 
 
 const clock = new Clock();
-scene.add(light);
-scene.background = new Color(0x87C6DD);
+
 
 ////////////////////////////////////ENVIRONEMENT////////////////////////////////////
 async function addEnvironmentBlock(i) {
   const block = await getNext(0, -0.4, i);
   if (block != null) {
+    block.traverse((child) => {
+      if (child.isMesh && !child.name.startsWith('tree')) {
+        child.castShadow = false;
+        child.receiveShadow = true;
+      }
+    });
     scene.add(block);
   }
 }
@@ -280,13 +315,27 @@ function removeOldBlocks(z) {
   });
 }
 
+function movedirectionalLight() {
+  const targetZ = poulet.position.z - 5;
+  directionalLight.position.z += (targetZ - directionalLight.position.z) * 0.1;
+  directionalLight.target.position.z = poulet.position.z;
+  directionalLight.target.updateMatrixWorld();
+}
 
-
+async function fillMissingBlocks(currentZ) {
+  for (let z = Math.floor(currentZ) + 10; z <= Math.floor(currentZ) + 20; z++) {
+    if (!blockPosition.some(block => block.z === z)) {
+      await addEnvironmentBlock(z);
+    }
+  }
+}
 
 function updateEnvironment() {
   moveWoodLogs();
   moveCars();
   removeOldBlocks(poulet.position.z);
+  movedirectionalLight();
+  fillMissingBlocks(poulet.position.z);
 }
 
 ////////////////////////////////////LOOOOOOOOOOOOOOOOSE////////////////////////////////////
