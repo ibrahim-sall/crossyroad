@@ -161,6 +161,7 @@ export async function addModel(modelPath, texturePath) {
   model.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;
+      child.receiveShadow = true;
     }
   });
   scene.add(model);

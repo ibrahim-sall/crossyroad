@@ -2,7 +2,28 @@ import { PositionOccupied, PositionOccupiedWood, PositionOccupiedRiver, isHitByC
 
 export const loose = { river: false, car: false };
 
+const moveQueue = [];
+let isMoving = false;
+
 export function movePoulet(poulet, direction) {
+    moveQueue.push(direction);
+    if (!isMoving) {
+        processQueue(poulet);
+    }
+}
+
+function processQueue(poulet) {
+    if (moveQueue.length === 0) {
+        isMoving = false;
+        return;
+    }
+
+    isMoving = true;
+    const direction = moveQueue.shift();
+    executeMove(poulet, direction, processQueue);
+}
+
+function executeMove(poulet, direction, callback) {
     const distance = 1;
     const duration = 500;
     const startTime = performance.now();
@@ -95,6 +116,8 @@ export function movePoulet(poulet, direction) {
         }
         if (progress < 1) {
             requestAnimationFrame(animate);
+        } else {
+            callback(poulet);
         }
     }
 
