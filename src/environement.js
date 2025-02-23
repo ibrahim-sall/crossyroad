@@ -182,7 +182,7 @@ export async function getNext(x, y, z) {
             do {
                 randomX = Math.floor(Math.random() * 16 - 8);
                 attempts++;
-            } while (cars.some(car => Math.abs(car.position.x - randomX) < 3 && Math.floor(car.position.z) === Math.floor(z)) && attempts < 4);
+            } while (cars.some(car => Math.abs(car.position.x - randomX) < 2 && Math.floor(car.position.z) === Math.floor(z)) && attempts < 4);
             voiture.position.set(Math.floor(randomX), 0, Math.floor(z));
             voiture.rotation.y = Math.PI / 2;
             cars.push(voiture);

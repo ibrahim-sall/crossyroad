@@ -113,10 +113,12 @@ async function addEnvironmentBlock(i) {
     scene.add(block);
   }
 }
+const where_blocks = []
 
 function initEnvironmentBlocks() {
   for (let i = 0; i < 20; i++) {
     addEnvironmentBlock(i);
+    where_blocks.push(i);
   }
 }
 initEnvironmentBlocks();
@@ -267,6 +269,7 @@ function moveCars() {
 function removeOldBlocks(z) {
   scene.children.forEach(child => {
     if (child.position.z < z - 10 && child !== light) {
+      where_blocks.splice(where_blocks.indexOf(child.position.z), 1);
       scene.remove(child);
     }
   });
@@ -281,8 +284,9 @@ function movedirectionalLight() {
 
 async function fillMissingBlocks(currentZ) {
   for (let z = Math.floor(currentZ) + 10; z <= Math.floor(currentZ) + 20; z++) {
-    if (!blockPosition.some(block => block.z === z)) {
+    if (!where_blocks.includes(z)) {
       await addEnvironmentBlock(z);
+      where_blocks.push(z);
     }
   }
 }

@@ -6,6 +6,9 @@ const moveQueue = [];
 let isMoving = false;
 
 export function movePoulet(poulet, direction) {
+    if (moveQueue.length >= 3) {
+        return;
+    }
     moveQueue.push(direction);
     if (!isMoving) {
         processQueue(poulet);
