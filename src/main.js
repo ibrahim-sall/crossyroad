@@ -1,7 +1,5 @@
 "use strict";
 
-// Import only what you need, to help your bundler optimize final code size using tree shaking
-// see https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
 
 import {
   PerspectiveCamera,
@@ -21,39 +19,8 @@ import { loadModel } from './loader.js';
 import { getNext, woods, cars, isHitByCar, blockPosition } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
-// If you prefer to import the whole library, with the THREE prefix, use the following line instead:
-// import * as THREE from 'three'
 
-// NOTE: three/addons alias is supported by Rollup: you can use it interchangeably with three/examples/jsm/  
-
-// Importing Ammo can be tricky.
-// Vite supports webassembly: https://vitejs.dev/guide/features.html#webassembly
-// so in theory this should work:
-//
-// import ammoinit from 'three/addons/libs/ammo.wasm.js?init';
-// ammoinit().then((AmmoLib) => {
-//  Ammo = AmmoLib.exports.Ammo()
-// })
-//
-// But the Ammo lib bundled with the THREE js examples does not seem to export modules properly.
-// A solution is to treat this library as a standalone file and copy it using 'vite-plugin-static-copy'.
-// See vite.config.js
-// 
-// Consider using alternatives like Oimo or cannon-es
-
-
-
-import {
-  OrbitControls
-} from 'three/addons/controls/OrbitControls.js';
-import { add } from 'three/tsl';
-import { remove } from 'three/examples/jsm/libs/tween.module.js';
-
-// Example of hard link to official repo for data, if needed
-// const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
-
-
-// INSERT CODE HERE
+////////////////////////////////////IMPORTANT DEFINIONS////////////////////////////////////
 
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
