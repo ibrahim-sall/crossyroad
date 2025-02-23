@@ -18,7 +18,7 @@ import {
 
 import { movePoulet, loose, moveCamera } from './moove.js';
 import { loadModel } from './loader.js';
-import { getNext, woods, cars, isHitByCar } from './environement.js';
+import { getNext, woods, cars, isHitByCar, blockPosition } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
 // If you prefer to import the whole library, with the THREE prefix, use the following line instead:
@@ -92,45 +92,13 @@ document.body.appendChild(renderer.domElement);
 
 
 ////////////////////////////////////CAMERA////////////////////////////////////
-// function saveCameraPosition() {
-//   const cameraPosition = {
-//     x: camera.position.x,
-//     y: camera.position.y,
-//     z: camera.position.z,
-//     rotation: {
-//       x: camera.rotation.x,
-//       y: camera.rotation.y,
-//       z: camera.rotation.z
-//     }
-//   };
-//   localStorage.setItem('cameraPosition', JSON.stringify(cameraPosition));
-// }
 
-// function loadCameraPosition() {
-//   const cameraPosition = JSON.parse(localStorage.getItem('cameraPosition'));
-//   if (cameraPosition) {
-//     camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-//     camera.rotation.set(cameraPosition.rotation.x, cameraPosition.rotation.y, cameraPosition.rotation.z);
-//   }
-// }
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
-// controls.screenSpacePanning = false;
-// controls.maxPolarAngle = Math.PI / 2;
 
 camera.position.set(-3, 6.5, -10);
 camera.lookAt(0, 0, 0);
 
 
-// window.addEventListener('beforeunload', saveCameraPosition);
-// window.addEventListener('load', loadCameraPosition);
 
-// const resetButton = document.createElement('button');
-// resetButton.innerText = 'Reset Camera';
-// resetButton.id = 'resetButton';
-// resetButton.addEventListener('click', resetCameraPosition);
-// document.body.appendChild(resetButton);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
@@ -145,8 +113,8 @@ document.body.appendChild(startPopup);
 
 startButton.addEventListener('click', () => {
   startPopup.style.display = 'none';
-  initAudio(camera); // Démarrer l'audio après l'interaction utilisateur
-  animation(); // Démarrer l'animation après l'interaction utilisateur
+  initAudio(camera);
+  animation();
 });
 
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
@@ -271,6 +239,38 @@ window.addEventListener('keydown', (event) => {
     }
   }
 });
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+window.addEventListener('touchstart', (event) => {
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+});
+
+window.addEventListener('touchend', (event) => {
+  const touchEndX = event.changedTouches[0].clientX;
+  const touchEndY = event.changedTouches[0].clientY;
+
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 0) {
+      movePoulet(poulet, 'right');
+    } else {
+      movePoulet(poulet, 'left');
+    }
+  } else {
+    if (diffY > 0) {
+      movePoulet(poulet, 'down');
+    } else {
+      addEnvironmentBlock(currentScore + 20);
+      movePoulet(poulet, 'up');
+    }
+  }
+});
+
 
 function onWindowResize() {
 

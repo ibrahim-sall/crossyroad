@@ -1,17 +1,15 @@
 import { loadModel } from './loader.js';
-
-
+import { LoadingManager } from 'three';
 
 const envs = {};
 const more = {};
 const car = {};
 
 async function loadEnv(modelPath, texturePath) {
-    const model = await loadModel(modelPath, texturePath);
-    return model;
-
+    return loadModel(modelPath, texturePath);
 }
-const blockPosition = [];
+
+export const blockPosition = [];
 const treePositions = [];
 export const woods = [];
 export const cars = [];
@@ -22,7 +20,6 @@ const probabilities = {
     river: 0.3,
     road: 0.3
 };
-
 
 export function PositionOccupied(x, z, direction) {
     const tolerance = 0.3;
@@ -39,32 +36,56 @@ export function PositionOccupied(x, z, direction) {
             return treePositions.some(pos => Math.abs(pos.x - x) < tolerance && Math.abs(pos.z - z) < tolerance);
     }
 }
+
 export function PositionOccupiedWood(x, z) {
     return woods.some(wood => Math.abs(wood.position.z - z) < 0.6 && Math.abs(wood.position.x - x) < wood.userData.size);
 }
+
 export function PositionOccupiedRiver(x, z) {
     return blockPosition.some(block => block.z === z && block.nature === 'river') && !PositionOccupiedWood(x, z);
 }
+
 export function isHitByCar(x, z) {
     return cars.some(voiture => Math.abs(voiture.position.z - z) < 0.5 && Math.abs(voiture.position.x - x) < 0.4);
 }
 
 async function initializeEnvs() {
-    envs['grass'] = await loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png');
-    envs['river'] = await loadEnv('assets/models/environment/river/0.obj', 'assets/models/environment/river/0.png');
-    envs['road'] = await loadEnv('assets/models/environment/road/model.obj', 'assets/models/environment/road/stripes-texture.png');
+    const manager = new LoadingManager();
+    const envPromises = [
+        loadEnv('assets/models/environment/grass/model.obj', 'assets/models/environment/grass/light-grass.png'),
+        loadEnv('assets/models/environment/river/0.obj', 'assets/models/environment/river/0.png'),
+        loadEnv('assets/models/environment/road/model.obj', 'assets/models/environment/road/stripes-texture.png')
+    ];
+
+    const [grass, river, road] = await Promise.all(envPromises);
+    envs['grass'] = grass;
+    envs['river'] = river;
+    envs['road'] = road;
 }
+
 async function initializeMore() {
+    const manager = new LoadingManager();
+    const morePromises = [];
+
     for (let i = 0; i < 3; i++) {
-        more['tree' + i] = await loadEnv('assets/models/environment/tree/' + i + '/0.obj', 'assets/models/environment/tree/' + i + '/0.png');
+        morePromises.push(loadEnv(`assets/models/environment/tree/${i}/0.obj`, `assets/models/environment/tree/${i}/0.png`));
+        morePromises.push(loadEnv(`assets/models/environment/log/${i}/0.obj`, `assets/models/environment/log/${i}/0.png`));
     }
+
+    const results = await Promise.all(morePromises);
     for (let i = 0; i < 3; i++) {
-        more['wood' + i] = await loadEnv('assets/models/environment/log/' + i + '/0.obj', 'assets/models/environment/log/' + i + '/0.png');
+        more[`tree${i}`] = results[i * 2];
+        more[`wood${i}`] = results[i * 2 + 1];
     }
 }
+
 async function initializeCar() {
-    list_vehicles.forEach(async (nom) => {
-        car[nom] = await loadEnv(`assets/models/vehicles/${nom}/0.obj`, `assets/models/vehicles/${nom}/0.png`);
+    const manager = new LoadingManager();
+    const carPromises = list_vehicles.map(nom => loadEnv(`assets/models/vehicles/${nom}/0.obj`, `assets/models/vehicles/${nom}/0.png`));
+
+    const results = await Promise.all(carPromises);
+    list_vehicles.forEach((nom, index) => {
+        car[nom] = results[index];
         car[nom].traverse((node) => {
             if (node.isMesh) {
                 node.castShadow = true;
@@ -77,7 +98,6 @@ initializeEnvs();
 initializeMore();
 initializeCar();
 
-
 export async function getNext(x, y, z) {
     if (Object.keys(envs).length === 0 || Object.keys(more).length === 0 || Object.keys(car).length === 0) {
         await initializeEnvs();
@@ -88,6 +108,7 @@ export async function getNext(x, y, z) {
     if (blockPosition.some(block => block.z === Math.floor(z))) {
         return null;
     };
+
     const envKeys = Object.keys(envs);
     let randomKey;
     const previousBlock = blockPosition.find(block => block.z === Math.floor(z) - 1);
