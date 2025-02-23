@@ -17,6 +17,8 @@ import { loadModel } from './loader.js';
 import { getNext, woods, cars, isHitByCar, blockPosition } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
+import { saveScore, displayLeaderboard } from './leaderboard.js';
+
 
 ////////////////////////////////////IMPORTANT DEFINIONS////////////////////////////////////
 
@@ -304,6 +306,15 @@ function updateEnvironment() {
   fillMissingBlocks(poulet.position.z);
 }
 
+////////////////////////////////////USER NAME////////////////////////////////////
+function getUserName() {
+  return localStorage.getItem('userName');
+}
+
+function setUserName(name) {
+  localStorage.setItem('userName', name);
+}
+
 ////////////////////////////////////LOOOOOOOOOOOOOOOOSE////////////////////////////////////
 function isLoose() {
   saveBestScore(currentScore);
@@ -354,7 +365,46 @@ function popUpLoose() {
   });
 
   loosePopup.appendChild(scoreMessage);
-  loosePopup.appendChild(restartButton);
   loosePopup.appendChild(bestScoreMessage);
+  loosePopup.appendChild(restartButton);
+
+  const userName = getUserName();
+  if (userName) {
+    if (currentScore >= getBestScore()) {
+      saveScore(userName, currentScore);
+    }
+    displayLeaderboard();
+  } else {
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Enter your name';
+    nameInput.id = 'nameInput';
+
+    const saveButton = document.createElement('button');
+    saveButton.innerText = 'Save Score';
+    saveButton.id = 'saveButton';
+    saveButton.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (name) {
+        setUserName(name);
+        if (currentScore >= getBestScore()) {
+          saveScore(name, currentScore);
+        }
+        displayLeaderboard();
+        nameInput.style.display = 'none';
+        saveButton.style.display = 'none';
+      }
+    });
+
+    loosePopup.appendChild(nameInput);
+    loosePopup.appendChild(saveButton);
+  }
+
   document.body.appendChild(loosePopup);
+
+  displayLeaderboard();
 }
+////////////////////////////////////DISPLAY LEADERBOARD ON LOAD////////////////////////////////////
+document.addEventListener('DOMContentLoaded', () => {
+  displayLeaderboard();
+});
