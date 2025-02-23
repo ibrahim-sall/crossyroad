@@ -49,6 +49,7 @@ body {
   color: purple;
   font-size: 30px;
   text-shadow: 1px 1px 3px rgba(204, 185, 185, 0.5);
+  margin-bottom: 5px;
 }
 
 #restartButton {
@@ -61,6 +62,7 @@ body {
   border: none;
   box-shadow: 0 4px 8px rgba(255, 253, 253, 0.2);
   transition: background-color 0.3s ease;
+  margin-top: 5px;
 }
 
 #bestScoreMessage {
@@ -75,18 +77,6 @@ body {
   padding: 10px 20px;
 }
 
-#restartButton {
-  padding: 10px 20px;
-  font-size: 20px;
-  cursor: pointer;
-  border-radius: 50px;
-  background-color: purple;
-  color: white;
-  border: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
 #scoreElement {
   position: absolute;
   top: 10px;
@@ -97,4 +87,43 @@ body {
   background-color: rgba(255, 255, 255, 0.8);
   border: 2px solid black;
   border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+
+  #startButton,
+  #restartButton {
+    padding: 15px;
+    font-size: 18px;
+  }
+
+  #scoreMessage,
+  #bestScoreMessage {
+    font-size: 24px;
+  }
+
+  #scoreElement {
+    font-size: 18px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  #startButton,
+  #restartButton {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  #scoreMessage,
+  #bestScoreMessage {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  #scoreElement {
+    font-size: 16px;
+    padding: 6px;
+  }
 }
