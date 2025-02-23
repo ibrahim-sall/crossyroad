@@ -1,7 +1,5 @@
 "use strict";
 
-// Import only what you need, to help your bundler optimize final code size using tree shaking
-// see https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
 
 import {
   PerspectiveCamera,
@@ -18,42 +16,11 @@ import {
 
 import { movePoulet, loose, moveCamera } from './moove.js';
 import { loadModel } from './loader.js';
-import { getNext, woods, cars, isHitByCar } from './environement.js';
+import { getNext, woods, cars, isHitByCar, blockPosition } from './environement.js';
 import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
-// If you prefer to import the whole library, with the THREE prefix, use the following line instead:
-// import * as THREE from 'three'
 
-// NOTE: three/addons alias is supported by Rollup: you can use it interchangeably with three/examples/jsm/  
-
-// Importing Ammo can be tricky.
-// Vite supports webassembly: https://vitejs.dev/guide/features.html#webassembly
-// so in theory this should work:
-//
-// import ammoinit from 'three/addons/libs/ammo.wasm.js?init';
-// ammoinit().then((AmmoLib) => {
-//  Ammo = AmmoLib.exports.Ammo()
-// })
-//
-// But the Ammo lib bundled with the THREE js examples does not seem to export modules properly.
-// A solution is to treat this library as a standalone file and copy it using 'vite-plugin-static-copy'.
-// See vite.config.js
-// 
-// Consider using alternatives like Oimo or cannon-es
-
-
-
-import {
-  OrbitControls
-} from 'three/addons/controls/OrbitControls.js';
-import { add } from 'three/tsl';
-import { remove } from 'three/examples/jsm/libs/tween.module.js';
-
-// Example of hard link to official repo for data, if needed
-// const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/three.js/r173/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
-
-
-// INSERT CODE HERE
+////////////////////////////////////IMPORTANT DEFINIONS////////////////////////////////////
 
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
@@ -92,45 +59,13 @@ document.body.appendChild(renderer.domElement);
 
 
 ////////////////////////////////////CAMERA////////////////////////////////////
-// function saveCameraPosition() {
-//   const cameraPosition = {
-//     x: camera.position.x,
-//     y: camera.position.y,
-//     z: camera.position.z,
-//     rotation: {
-//       x: camera.rotation.x,
-//       y: camera.rotation.y,
-//       z: camera.rotation.z
-//     }
-//   };
-//   localStorage.setItem('cameraPosition', JSON.stringify(cameraPosition));
-// }
 
-// function loadCameraPosition() {
-//   const cameraPosition = JSON.parse(localStorage.getItem('cameraPosition'));
-//   if (cameraPosition) {
-//     camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-//     camera.rotation.set(cameraPosition.rotation.x, cameraPosition.rotation.y, cameraPosition.rotation.z);
-//   }
-// }
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
-// controls.screenSpacePanning = false;
-// controls.maxPolarAngle = Math.PI / 2;
 
 camera.position.set(-3, 6.5, -10);
 camera.lookAt(0, 0, 0);
 
 
-// window.addEventListener('beforeunload', saveCameraPosition);
-// window.addEventListener('load', loadCameraPosition);
 
-// const resetButton = document.createElement('button');
-// resetButton.innerText = 'Reset Camera';
-// resetButton.id = 'resetButton';
-// resetButton.addEventListener('click', resetCameraPosition);
-// document.body.appendChild(resetButton);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
@@ -145,8 +80,8 @@ document.body.appendChild(startPopup);
 
 startButton.addEventListener('click', () => {
   startPopup.style.display = 'none';
-  initAudio(camera); // Démarrer l'audio après l'interaction utilisateur
-  animation(); // Démarrer l'animation après l'interaction utilisateur
+  initAudio(camera);
+  animation();
 });
 
 ////////////////////////////////////LOAD MODEL////////////////////////////////////
@@ -273,6 +208,38 @@ window.addEventListener('keydown', (event) => {
     }
   }
 });
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+window.addEventListener('touchstart', (event) => {
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+});
+
+window.addEventListener('touchend', (event) => {
+  const touchEndX = event.changedTouches[0].clientX;
+  const touchEndY = event.changedTouches[0].clientY;
+
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 0) {
+      movePoulet(poulet, 'right');
+    } else {
+      movePoulet(poulet, 'left');
+    }
+  } else {
+    if (diffY > 0) {
+      movePoulet(poulet, 'down');
+    } else {
+      addEnvironmentBlock(currentScore + 20);
+      movePoulet(poulet, 'up');
+    }
+  }
+});
+
 
 function onWindowResize() {
 
