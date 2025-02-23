@@ -196,6 +196,7 @@ window.addEventListener('keydown', (event) => {
 
 let touchStartX = 0;
 let touchStartY = 0;
+let firstTouch = true;
 
 window.addEventListener('touchstart', (event) => {
   touchStartX = event.touches[0].clientX;
@@ -203,12 +204,16 @@ window.addEventListener('touchstart', (event) => {
 });
 
 window.addEventListener('touchend', (event) => {
+  if (firstTouch) {
+    firstTouch = false;
+    return;
+  }
   const touchEndX = event.changedTouches[0].clientX;
   const touchEndY = event.changedTouches[0].clientY;
 
   const diffX = touchEndX - touchStartX;
   const diffY = touchEndY - touchStartY;
-
+  playSound();
   if (Math.abs(diffX) > Math.abs(diffY)) {
     if (diffX > 0) {
       movePoulet(poulet, 'right');
