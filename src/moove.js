@@ -99,7 +99,7 @@ function executeMove(poulet, direction, callback) {
                 poulet.movingOnWood = true;
                 function moveOnWood() {
                     if (!poulet.movingOnWood) return;
-                    poulet.position.x += 0.025;
+                    poulet.position.x += 0.02;
                     requestAnimationFrame(moveOnWood);
                     if (poulet.position.x > 4) {
                         loose.river = true;

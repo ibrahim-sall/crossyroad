@@ -1,6 +1,5 @@
 "use strict";
 
-
 import {
   PerspectiveCamera,
   Scene,
@@ -12,7 +11,6 @@ import {
   Color,
   Clock
 } from 'three';
-
 
 import { movePoulet, loose, moveCamera } from './moove.js';
 import { loadModel } from './loader.js';
@@ -35,7 +33,6 @@ const renderer = new WebGLRenderer();
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 
-
 const directionalLight = new DirectionalLight(0xffffff, 1.5);
 directionalLight.position.set(12, 20, -5);
 directionalLight.castShadow = true;
@@ -57,15 +54,10 @@ scene.background = new Color(0x87C6DD);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-
 ////////////////////////////////////CAMERA////////////////////////////////////
-
 
 camera.position.set(-3, 6.5, -10);
 camera.lookAt(0, 0, 0);
-
-
-
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
@@ -104,14 +96,9 @@ export async function addModel(modelPath, texturePath) {
   poulet = model;
 }
 
-
-
 poulet = addModel('assets/models/characters/chicken/0.obj', 'assets/models/characters/chicken/0.png');
 
-
-
 const clock = new Clock();
-
 
 ////////////////////////////////////ENVIRONEMENT////////////////////////////////////
 async function addEnvironmentBlock(i) {
@@ -127,7 +114,6 @@ async function addEnvironmentBlock(i) {
   }
 }
 
-//initialize
 function initEnvironmentBlocks() {
   for (let i = 0; i < 20; i++) {
     addEnvironmentBlock(i);
@@ -152,31 +138,30 @@ function getBestScore() {
   return localStorage.getItem('bestScore') || 0;
 }
 
-
 ////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
-const animation = () => {
+let previousTime = 0;
 
-
+const animation = (time) => {
+  const deltaTime = (time - previousTime) / 1000;
+  previousTime = time;
   renderer.setAnimationLoop(animation);
 
   currentScore = updateScore(poulet);
-  // controls.update();
 
-  const elapsed = clock.getElapsedTime();
-  updateEnvironment();
+  updateEnvironment(deltaTime);
   moveCamera(poulet.position.z - 4, camera);
   isLoose();
 
   renderer.render(scene, camera);
 
+  const elapsed = clock.getElapsedTime();
   if (elapsed % 5 < 0.1) {
     playHorn();
   }
-
 };
 
 poulet.then(() => {
-  animation();
+  animation(0);
 });
 
 ////////////////////////////////////EVENT LISTENER////////////////////////////////////
@@ -238,20 +223,20 @@ window.addEventListener('touchend', (event) => {
   }
 });
 
-
 function onWindowResize() {
-
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-
 }
 
 ////////////////////////////////////UPDATE ENVIRONNEMENT////////////////////////////////////
+const woodSpeed = 0.02;
+const carSpeed = 0.05;
+
 function moveWoodLogs() {
   woods.forEach(wood => {
-    wood.position.x += 0.025;
+    wood.position.x += woodSpeed;
     if (wood.position.x > 10) {
       wood.position.x = -10;
     }
@@ -263,7 +248,11 @@ function moveWoodLogs() {
 
 function moveCars() {
   cars.forEach(car => {
-    car.position.x += 0.05;
+    if (isNaN(car.position.x)) {
+      car.position.x = 0;
+    }
+
+    car.position.x += carSpeed;
     if (car.position.x > 10) {
       car.position.x = -10;
     }
@@ -334,8 +323,6 @@ function isLoose() {
     }, 1000);
   }
 }
-
-
 
 function popUpLoose() {
   const loosePopup = document.createElement('div');
