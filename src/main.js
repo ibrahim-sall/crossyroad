@@ -19,7 +19,6 @@ import { initializeScore, updateScore } from './score.js';
 import { initAudio, playSound, playSoundRiver, playSoundCar, playHorn, playHomer } from './sound.js';
 import { saveScore, displayLeaderboard } from './leaderboard.js';
 
-
 ////////////////////////////////////IMPORTANT DEFINIONS////////////////////////////////////
 
 const scene = new Scene();
@@ -58,8 +57,8 @@ document.body.appendChild(renderer.domElement);
 
 ////////////////////////////////////CAMERA////////////////////////////////////
 
-camera.position.set(-3, 6.5, -10);
-camera.lookAt(0, 0, 0);
+camera.position.set(-4, 6.5, -15);
+camera.lookAt(4, -1, 0);
 
 ////////////////////////////////////START POPUP////////////////////////////////////
 const startPopup = document.createElement('div');
@@ -142,18 +141,15 @@ function getBestScore() {
   return localStorage.getItem('bestScore') || 0;
 }
 
-////////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
-let previousTime = 0;
+///////////////////////////////////BOUCLE DE RENDU////////////////////////////////////
 
-const animation = (time) => {
-  const deltaTime = (time - previousTime) / 1000;
-  previousTime = time;
+const animation = () => {
   renderer.setAnimationLoop(animation);
 
   currentScore = updateScore(poulet);
 
-  updateEnvironment(deltaTime);
-  moveCamera(poulet.position.z - 4, camera);
+  updateEnvironment();
+  moveCamera(poulet.position.z - 5, camera);
   isLoose();
 
   renderer.render(scene, camera);
@@ -165,7 +161,7 @@ const animation = (time) => {
 };
 
 poulet.then(() => {
-  animation(0);
+  animation();
 });
 
 ////////////////////////////////////EVENT LISTENER////////////////////////////////////
@@ -404,6 +400,7 @@ function popUpLoose() {
 
   displayLeaderboard();
 }
+
 ////////////////////////////////////DISPLAY LEADERBOARD ON LOAD////////////////////////////////////
 document.addEventListener('DOMContentLoaded', () => {
   displayLeaderboard();
