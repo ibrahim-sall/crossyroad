@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDKVjltiLKffTVCUYzAxizHFzOSJON5m2M",
     authDomain: "crossyroad-b20ec.firebaseapp.com",
     projectId: "crossyroad-b20ec",
     storageBucket: "crossyroad-b20ec.appspot.com",

@@ -1,14 +1,31 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, orderBy, limit, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const LEADERBOARD_COLLECTION = 'leaderboard';
 
 export async function saveScore(name, score) {
     try {
-        await addDoc(collection(db, LEADERBOARD_COLLECTION), {
-            name: name,
-            score: score
+        const q = query(collection(db, LEADERBOARD_COLLECTION), orderBy('score', 'desc'));
+        const querySnapshot = await getDocs(q);
+        let docId = null;
+
+        querySnapshot.forEach((doc) => {
+            if (doc.data().name === name) {
+                docId = doc.id;
+            }
         });
+
+        if (docId) {
+            const docRef = doc(db, LEADERBOARD_COLLECTION, docId);
+            await updateDoc(docRef, {
+                score: score
+            });
+        } else {
+            await addDoc(collection(db, LEADERBOARD_COLLECTION), {
+                name: name,
+                score: score
+            });
+        }
     } catch (e) {
         console.error("Error adding document: ", e);
     }
